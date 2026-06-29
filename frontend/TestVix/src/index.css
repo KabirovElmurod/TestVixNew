@@ -1,0 +1,153 @@
+:root {
+  --bg: #f7f9ff;
+  --surface: #ffffff;
+  --surface-soft: #f0f3ff;
+  --text: #121827;
+  --text-h: #0f172a;
+  --text-muted: #6b7280;
+  --border: #dfe3ee;
+  --code-bg: #f4f5f9;
+  --accent: #3f5cff;
+  --accent-strong: #2068ff;
+  --accent-bg: rgba(63, 92, 255, 0.12);
+  --accent-border: rgba(63, 92, 255, 0.35);
+  --shadow: rgba(15, 23, 42, 0.08) 0 16px 40px -18px;
+  --shadow-strong: rgba(15, 23, 42, 0.14) 0 24px 64px -28px;
+  --nav-bg: rgba(255, 255, 255, 0.92);
+  --nav-border: rgba(63, 92, 255, 0.18);
+  --nav-shadow: 0 16px 40px rgba(63, 92, 255, 0.08);
+  --button-bg: rgba(63, 92, 255, 0.07);
+  --button-text: #1f2937;
+  --button-border: rgba(63, 92, 255, 0.22);
+  --fon-color: #2068ff;
+
+  --div-div-color: #f3f3f3;
+  --div-div-div-color: #d7d7d7;
+  
+  --sidebar_bg: rgba(255, 255, 255, 0.92);
+  --sidebar_a: darkcyan;
+  
+
+  --input-bg: white;
+  --input-border: rgba(15, 23, 42, 0.12);
+
+
+   /* #8FA0B8 */
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+html[data-theme='dark'] {
+  --bg: #090b18;
+  --surface: rgba(11, 17, 45, 0.98);
+  --surface-soft: rgba(16, 24, 66, 0.92);
+  --text: #e7efff;
+  --text-h: #ffffff;
+  --text-muted: #9ca3af;
+  --border: rgba(255, 255, 255, 0.12);
+  --code-bg: #151828;
+  --accent: #63b7ff;
+  --accent-strong: #1da1ff;
+  --accent-bg: rgba(36, 120, 255, 0.16);
+  --accent-border: rgba(97, 183, 255, 0.45);
+  --shadow: rgba(0, 0, 0, 0.42) 0 16px 40px -18px;
+  --shadow-strong: rgba(0, 0, 0, 0.55) 0 22px 62px -24px;
+  --nav-bg: rgba(7, 12, 40, 0.92);
+  --nav-border: rgba(97, 183, 255, 0.12);
+  --nav-shadow: 0 16px 40px rgba(0, 0, 0, 0.32);
+  --button-bg: rgba(255, 255, 255, 0.06);
+  --button-text: #e7f3ff;
+  --button-border: rgba(255, 255, 255, 0.18);
+  --fon-color: #0251be;
+  
+  --div-div-color: #1D293D;
+  --div-div-div-color: #314158;
+
+  --sidebar_bg: rgba(7, 12, 40, 0.92);
+  --sidebar_a: #b8b8b8;
+
+
+  --input-bg: #0F172B;
+  --input-border: rgba(255, 255, 255, 0.18);
+
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#root {
+  width: 2126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}

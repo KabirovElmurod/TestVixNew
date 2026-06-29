@@ -1,0 +1,46 @@
+.my-tests-page {
+    padding: 20px;
+    // Assuming this page is within user-layout-main, which already has padding.
+    // Adjust padding as needed based on overall layout.
+
+    .my-tests-header {
+        display: flex;
+        justify-content: space-between;
+        // align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 15px;
+
+        h1 {
+            font-size: 2.2rem;
+            color: var(--text-h); // Use a heading specific color if available, otherwise var(--text)
+            margin: 0;
+        }
+
+        .add-test-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 25px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+            color: #ffffff;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 12px rgba(39, 154, 248, 0.25);
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(39, 154, 248, 0.35);
+            }
+        }
+    }
+
+    .test-cards-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}

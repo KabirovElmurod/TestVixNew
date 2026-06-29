@@ -1,0 +1,14 @@
+django
+fastapi
+uvicorn
+psycopg2-binary
+python-jose
+passlib[bcrypt]
+
+
+sqlalchemy
+asyncpg
+alembic
+pydantic
+python-dotenv
+"bcrypt==4.0.1"

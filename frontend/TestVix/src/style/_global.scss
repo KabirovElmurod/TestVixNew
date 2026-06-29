@@ -1,0 +1,28 @@
+
+
+body {
+  margin: 0;
+  padding: 0 0;
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--text);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+html {
+  scroll-behavior: smooth;
+  // offset: 100px;
+}
+ul , p, h2,h3{
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+a {
+  text-decoration: none;
+}
