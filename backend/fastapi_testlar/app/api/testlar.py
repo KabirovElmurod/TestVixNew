@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
+from ...app.crud.func import verify_hash_url
+
 from ...app.session import get_db
 from ...app.schemas.testlar import TestlarCreate, TestlarDelete, TestlarUpdate, TestlarRead
 from ...app.crud.testlar import (
@@ -122,25 +124,18 @@ async def update_test_endpoint(
 @router.post("/delete_test/{id}")
 async def delete_testlar_endpoint(
     id: str | int,
-    # key: str,
-    # ispublic: bool,
     data: TestlarDelete,
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
     if current_user.get('status') == False:
         return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user':False}
-        
     
-    # existing_testlar = await get_testlar_by_id(db, id)
-    # if not existing_testlar:
-    #     return wrong("Test topilmadi", status=False)
-    
-    deleted = await delete_testlar(db, data.key, data.id, data.ispublic, current_user.get('id'))
-    # if deleted:
-    #     return {"message": "Test muvaffaqiyatli o'chirildi", "status": True}
-    # else:
-    #     return wrong("Testni o'chirishda xatolik yuz berdi", status=False)
+    if not verify_hash_url(data.id, data.key, data.hash_url):
+        return {"message": "Test o'chirishda xatolik yuz berdi", "status": False}
+
+
+    deleted = await delete_testlar(db, data.key, data.id, current_user.get('id'))
     if deleted == False:
         return {"message": "Bunday test topilmadi yoki sizga tegishli emas", "status": False}
     return {"message": "Test muvaffaqiyatli o'chirildi", "status": True}

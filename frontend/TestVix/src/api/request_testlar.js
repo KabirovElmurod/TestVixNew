@@ -1,13 +1,13 @@
-const API_URl_testlar = 'http://localhost/api1/testlar/'; // testlar url
+const API_URl_testlar = 'http://localhost/api1/testlar'; // testlar url
 
 
-export const profile_img = () =>{
+export const profile_img = () => {
     return '../public/profile.png'
 }
 
 // test create post api
 export const createTestPost = async (postData) => {
-    const res = await fetch(`${API_URl_testlar}`, {
+    const res = await fetch(`${API_URl_testlar}/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -29,8 +29,7 @@ export const getTestGet = async () => {
     return res.json();
 }
 
-export const deleteTestPost = async (key, id, ispublic) => {
-    console.log(key, id, ispublic);
+export const deleteTestPost = async (id, key, hash_url) => {
     const res = await fetch(`${API_URl_testlar}/delete_test/${id}`, {
         method: 'POST',
         credentials: 'include',
@@ -39,9 +38,9 @@ export const deleteTestPost = async (key, id, ispublic) => {
         },
 
         body: JSON.stringify({
-            'key': key,
             'id': id,
-            'ispublic': ispublic
+            'key': key,
+            'hash_url': hash_url
         })
 
     })

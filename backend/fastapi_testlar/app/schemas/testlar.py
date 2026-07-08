@@ -28,9 +28,9 @@ class TestlarUpdate(BaseModel):
     id: Optional[str | int] = None
 
 class TestlarDelete(BaseModel):
-    key: Optional[str] = None
-    id: Optional[str | int] = None
-    ispublic: Optional[bool] = None
+    key: Optional[str]
+    id: Optional[str | int] 
+    hash_url: Optional[str | int] 
 
 class TestlarRead(BaseModel):
     id: int

@@ -4,7 +4,7 @@ export const loginUser = async (data) => {
   const res = await fetch(`${API}/auth/login`, {
     method: "POST",
     credentials: "include",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
   });
   return res.json();
@@ -14,21 +14,21 @@ export const registerUser = async (data) => {
   const res = await fetch(`${API}/auth/register`, {
     method: "POST",
     credentials: "include",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
   });
   return res.json();
 };
 
-export const verify_token = async ()=>{
+export const verify_token = async () => {
   // return false
   const res = await fetch(`${API}/auth/me`, {
     method: "GET",
     credentials: "include",
   });
-  let data=await res.json();
-  
-  if (data.status){
+  let data = await res.json();
+
+  if (data.status) {
     return data
   }
   else return false;

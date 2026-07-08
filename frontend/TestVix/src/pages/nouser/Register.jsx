@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import FonColor from "../../components/ui/FonColor";
 
 
-function check_password(password){
+function check_password(password) {
   const hasLetter = /[a-zA-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   return hasLetter && hasNumber;
@@ -42,15 +42,15 @@ export default function Register() {
 
 
     const regRes = await registerUser({ nickname, email, username, password });
-    
+
     if (!regRes.status && regRes.message) {
       setMessage(regRes.message);
       return;
     }
-    
+
     // // 🔥 avtomatik login
     // const res = await loginUser({ username, password });
-    
+
     // console.log('data_register', res);
     if (regRes.status) {
       await login(true);
@@ -61,7 +61,7 @@ export default function Register() {
   };
 
   return (
-    <div className="login-page" style={{position:'relative', top:'30px'}}>
+    <div className="login-page" style={{ position: 'relative', top: '30px' }}>
       <FonColor lightColor="#279af8" darkColor="#054298" top_y={-100} left_x={-150} wd={300} ht={300} />
       <FonColor lightColor="#4ecdc4" darkColor="#00b894" top_y={400} left_x={400} wd={300} ht={300} />
 
@@ -76,45 +76,45 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="login-form" style={{ gap: '8px' }}>
           <div className="form-group" style={{ marginBottom: '2px' }}>
             <label>Nickname</label>
-            <input 
-              placeholder="Sizning ismingiz" 
+            <input
+              placeholder="Sizning ismingiz"
               value={nickname}
-              onChange={e => setNickname(e.target.value)} 
+              onChange={e => setNickname(e.target.value)}
               required
             />
           </div>
           <div className="form-group" style={{ marginBottom: '2px' }}>
             <label>Email</label>
-            <input 
-            type="email"
-              placeholder="Email" 
+            <input
+              type="email"
+              placeholder="Email"
               value={email}
-              onChange={e => setEmail(e.target.value)} 
+              onChange={e => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="form-group" style={{ marginBottom: '2px' }}>
             <label>Username</label>
-            <input 
-              placeholder="username" 
+            <input
+              placeholder="username"
               value={username}
-              onChange={e => setUsername(e.target.value)} 
+              onChange={e => setUsername(e.target.value)}
               required
             />
           </div>
           <div className="form-group" style={{ marginBottom: '2px' }}>
             <label>Parol</label>
             <div style={{ position: 'relative', width: '100%' }}>
-              <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="••••••••" 
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
                 value={password}
-                onChange={e => setPassword(e.target.value)} 
+                onChange={e => setPassword(e.target.value)}
                 required
                 style={{ width: '100%', paddingRight: '35px' }}
               />
-              <i 
-                className={`eye-icon-style bi ${showPassword ? "bi-eye-fill" : "bi-eye-slash-fill"}`} 
+              <i
+                className={`eye-icon-style bi ${showPassword ? "bi-eye-fill" : "bi-eye-slash-fill"}`}
                 onClick={() => setShowPassword(!showPassword)}
               ></i>
             </div>

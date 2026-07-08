@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, Text, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from ..base import Base
 
@@ -19,6 +19,7 @@ class Testlar(Base):
     created = Column(DateTime, default=func.now())
 
     savollar = relationship("Savollar", back_populates="test")
+    testlar_hashtag = relationship("TestlarHashtag", back_populates="test")
 
     def __str__(self):
         return self.nom
@@ -48,4 +49,31 @@ class Variantlar(Base):
     text = Column(Text, nullable=True)
     is_true = Column(Boolean, nullable=True)
     savol = relationship("Savollar", back_populates="variantlar")
-        
+
+
+
+class Hashtag(Base):
+    __tablename__ = "myapp_hashtag"
+    id = Column(Integer, primary_key=True)
+    # test_id = Column(
+    #     Integer,
+    #     ForeignKey("myapp_testlar.id", ondelete="CASCADE")
+    # )
+    name = Column(String(100), unique=True, index=True)
+    tag = Column(Boolean, default=False)
+
+    
+
+class TestlarHashtag(Base):
+    __tablename__ = "myapp_testlarhashtag"
+    id = Column(Integer, primary_key=True)
+    test_id = Column(
+        Integer,
+        ForeignKey("myapp_testlar.id", ondelete="CASCADE")
+    )
+    hashtag_id = Column(
+        Integer,
+        ForeignKey("myapp_hashtag.id", ondelete="CASCADE")
+    )
+    
+    test = relationship("Testlar", back_populates="testlar_hashtag")

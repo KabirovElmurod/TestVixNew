@@ -8,8 +8,9 @@ from ...app.crud.func import (
     created_to_human_time, 
     generate_hash_url
 )
-from ..models.testlar import Testlar, Savollar
+from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar
 from ..schemas.testlar import TestlarCreate, TestlarUpdate
+from ...app.task import generate_hashtags
 # from ..app.crud. import created_to_human_time
 async def get_id_by_username(db: AsyncSession, username: str):
     result = await db.execute(select(Testlar.id).where(Testlar.username == username))
@@ -31,6 +32,7 @@ async def create_testlar(db: AsyncSession, testlar: TestlarCreate, user_id: int)
     db.add(db_testlar)
     await db.commit()
     await db.refresh(db_testlar)
+    generate_hashtags.delay(db_testlar.id, db_testlar.nom, db_testlar.fan, db_testlar.tavsif)
     return {'message': "Test muvaffaqiyatli yaratildi", "status": True, 'user':True}
 
 
@@ -77,8 +79,8 @@ async def get_testlar_by_user_id(db: AsyncSession, user_id: int, skip: int = 0, 
     results = []
     for test, savollar_soni in rows:
         results.append({
-            'id': test.test_id if test.ispublic else test.test_code,
-            'test_id': test.id,
+            'test_id': test.test_id if test.ispublic else test.test_code,
+            'id': test.id,
             'nom': test.nom,
             'fan': test.fan,
             'tavsif': test.tavsif,
@@ -120,10 +122,16 @@ async def update_test(db: AsyncSession, test: TestlarUpdate):
     return True
 
 
-async def delete_testlar(db: AsyncSession, key: str, id: str | int, ispublic: bool, user_id: int):
-    if ispublic:
-        result = await db.execute(delete(Testlar).where((Testlar.test_key == key) & (Testlar.user_id == user_id) & (Testlar.test_id == id)))
-    else:
-        result = await db.execute(delete(Testlar).where((Testlar.test_key == key) & (Testlar.user_id == user_id) & (Testlar.test_code == id)))
+async def delete_testlar(db: AsyncSession, key: str, id: str | int, user_id: int):
+    await db.execute(
+        delete(Variantlar).where(
+            Variantlar.savol_id.in_(
+                select(Savollar.id).where(Savollar.test_id == id)
+            )
+        )
+    )
+    await db.execute(delete(Savollar).where(Savollar.test_id == id))
+    await db.execute(delete(TestlarHashtag).where(TestlarHashtag.test_id == id))
+    result = await db.execute(delete(Testlar).where((Testlar.test_key == key) & (Testlar.user_id == user_id) & (Testlar.id == id)))
     await db.commit()
     return result.rowcount > 0

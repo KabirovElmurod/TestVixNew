@@ -76,11 +76,11 @@ WSGI_APPLICATION = 'django_main.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'testvix',
-        'USER': 'testvix',
+        'NAME': 'testvixdocker',
+        'USER': 'testvixdocker',
         'PASSWORD': 'qoty_qouy_2006',
         'HOST': 'localhost',
-        'PORT': '5432',
+        'PORT': '5433',
     }
 }
 

@@ -1,7 +1,7 @@
 # savol_id hosil qilish ketma-ket counter bo'yicha. oxirgisini dbdan olib counter qilib olish kerak. savol_code va savol_key esa random 8 ta harf va raqam bo'lishi kerak. savol_id, savol_code va savol_key unique bo'lishi kerak
 from datetime import datetime, timezone
 
-from django import db
+# from django import db
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..models.savollar import Savollar
