@@ -1,0 +1,167 @@
+.testlar {
+    .head-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: space-between;
+        left: 0;
+        width: 100%;
+        position: fixed;
+        z-index: 1;
+        // background: white;
+        padding: 10px 20px;
+        backdrop-filter: blur(10px);
+        top: 90px;
+
+
+        .search-button {
+            padding: 7px 15px;
+            font-size: 18px;
+            border-radius: 8px;
+            background-color: rgb(0, 131, 205);
+            color: white;
+            border: 0;
+            transition: all 0.2s linear;
+
+            &:hover {
+                background-color: rgb(0, 162, 255);
+            }
+        }
+
+        .input-div {
+            position: relative;
+            width: 100%;
+
+            .search-input {
+                // width: 200%;
+                height: 40px;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+                padding: 0 10px;
+                font-size: 16px;
+            }
+
+            .bi-search {
+                position: absolute;
+                right: 0px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #ffffff;
+                background-color: rgb(0, 131, 205);
+                padding: 12px 15px;
+                border-top-right-radius: 5px;
+                border-bottom-right-radius: 5px;
+                transition: all 0.2s linear;
+                border: 0;
+
+
+                &:hover {
+                    background-color: rgb(0, 162, 255);
+                }
+            }
+        }
+    }
+
+    .categors-div {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+
+        .categor-title {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            padding: 20px 0;
+            align-items: center;
+
+            h2 {
+                font-size: 22px;
+            }
+
+            button {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                // background-color: var(--button-small-bg);
+                background: none;
+                color: var(--text);
+                padding: 5px 10px;
+                border-radius: 10px;
+                border: 0;
+                font-size: 16px;
+                gap: 5px;
+                transition: all 0.3s linear;
+
+                &:hover {
+                    background-color: var(--div-div-div-color);
+
+                }
+            }
+        }
+
+        .steps-flex {
+            display: flex;
+            gap: 20px;
+            scroll-snap-type: x mandatory;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            // user-select: none;
+
+            .test-card {
+                scroll-snap-align: start;
+                flex: 0 0 350px;
+            }
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            &::scroll-button(*) {
+
+                background-color: var(--div-div-color);
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                height: 40px;
+                width: 40px;
+                color: var(--text);
+                border: 0;
+                padding: 6px 10px;
+                font-size: 20px;
+                position: absolute;
+                top: 50%;
+                transition: all 0.2s linear;
+                box-shadow: 0 1px 10px var(--text-muted);
+
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+                &:hover {
+                    background-color: var(--div-div-div-color);
+
+                }
+            }
+
+            &::scroll-button(inline-start) {
+                content: "←";
+                left: 0;
+            }
+
+            &::scroll-button(inline-end) {
+                content: "→";
+                right: 0;
+            }
+
+        }
+
+        // SCSS nesting targets the container and its native scroll components
+
+
+    }
+
+    .other-cate-grid {
+        width: 100%;
+    }
+}

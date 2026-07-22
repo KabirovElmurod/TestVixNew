@@ -23,16 +23,19 @@
 
   --div-div-color: #f3f3f3;
   --div-div-div-color: #d7d7d7;
-  
+
   --sidebar_bg: rgba(255, 255, 255, 0.92);
   --sidebar_a: darkcyan;
-  
+
 
   --input-bg: white;
   --input-border: rgba(15, 23, 42, 0.12);
 
+  --button-small-bg: rgb(214, 238, 255);
+  --button-small-bg-hover: rgb(181, 212, 231);
 
-   /* #8FA0B8 */
+
+  /* #8FA0B8 */
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -47,9 +50,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin-top: 90px;
 
   @media (max-width: 1024px) {
     font-size: 16px;
+  }
+
+  @media (max-width:902px) {
+    margin-top: 0;
   }
 }
 
@@ -75,7 +83,7 @@ html[data-theme='dark'] {
   --button-text: #e7f3ff;
   --button-border: rgba(255, 255, 255, 0.18);
   --fon-color: #0251be;
-  
+
   --div-div-color: #1D293D;
   --div-div-div-color: #314158;
 
@@ -85,6 +93,9 @@ html[data-theme='dark'] {
 
   --input-bg: #0F172B;
   --input-border: rgba(255, 255, 255, 0.18);
+
+  --button-small-bg: rgb(34, 53, 66);
+  --button-small-bg-hover: rgb(45, 73, 91);
 
 }
 
@@ -97,10 +108,11 @@ body {
 #root {
   width: 2126px;
   max-width: 100%;
+  min-width: 400px;
   margin: 0 auto;
   text-align: center;
   border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  /* min-height: 100svh; */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -117,6 +129,7 @@ h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
   margin: 32px 0;
+
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
@@ -128,6 +141,7 @@ h2 {
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
+
   @media (max-width: 1024px) {
     font-size: 20px;
   }

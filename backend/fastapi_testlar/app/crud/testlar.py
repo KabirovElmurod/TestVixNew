@@ -8,7 +8,7 @@ from ...app.crud.func import (
     created_to_human_time, 
     generate_hash_url
 )
-from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar
+from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar, Hashtag
 from ..schemas.testlar import TestlarCreate, TestlarUpdate
 from ...app.task import generate_hashtags
 # from ..app.crud. import created_to_human_time
@@ -65,9 +65,21 @@ async def get_testlar_by_user_id(db: AsyncSession, user_id: int, skip: int = 0, 
     stmt = (
         select(
             Testlar,
-            func.count(Savollar.id).label("savollar_soni")
+            func.count(Savollar.id).label("savollar_soni"),
+            func.array_agg(
+                Hashtag.name
+            ).label("hashtags")
         )
         .outerjoin(Savollar, Savollar.test_id == Testlar.id)
+        .outerjoin(
+            TestlarHashtag,
+            (TestlarHashtag.test_id == Testlar.id) &
+            (TestlarHashtag.tag == True)
+        )
+        .outerjoin(
+            Hashtag,
+            Hashtag.id == TestlarHashtag.hashtag_id
+        )
         .where(Testlar.user_id == user_id)
         .group_by(Testlar.id)
         .offset(skip)
@@ -77,7 +89,7 @@ async def get_testlar_by_user_id(db: AsyncSession, user_id: int, skip: int = 0, 
     result = await db.execute(stmt)
     rows = result.all()
     results = []
-    for test, savollar_soni in rows:
+    for test, savollar_soni, hashtag_name in rows:
         results.append({
             'test_id': test.test_id if test.ispublic else test.test_code,
             'id': test.id,
@@ -90,7 +102,8 @@ async def get_testlar_by_user_id(db: AsyncSession, user_id: int, skip: int = 0, 
             'time': test.time,
             'created': created_to_human_time(test.created),
             'hash_url': generate_hash_url(test.id, test.test_key),
-            'savollar_soni': savollar_soni
+            'savollar_soni': savollar_soni,
+            'hashtag_names': hashtag_name
         })
     return results
     # return 

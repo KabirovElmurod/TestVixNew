@@ -1,5 +1,3 @@
-
-
 body {
   margin: 0;
   padding: 0 0;
@@ -18,11 +16,16 @@ html {
   scroll-behavior: smooth;
   // offset: 100px;
 }
-ul , p, h2,h3{
+
+ul,
+p,
+h2,
+h3 {
   list-style: none;
   padding: 0;
   margin: 0;
 }
+
 a {
   text-decoration: none;
 }

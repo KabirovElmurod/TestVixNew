@@ -60,7 +60,7 @@ class Hashtag(Base):
     #     ForeignKey("myapp_testlar.id", ondelete="CASCADE")
     # )
     name = Column(String(100), unique=True, index=True)
-    tag = Column(Boolean, default=False)
+    
 
     
 
@@ -75,5 +75,5 @@ class TestlarHashtag(Base):
         Integer,
         ForeignKey("myapp_hashtag.id", ondelete="CASCADE")
     )
-    
+    tag = Column(Boolean, default=False)
     test = relationship("Testlar", back_populates="testlar_hashtag")

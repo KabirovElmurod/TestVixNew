@@ -32,12 +32,12 @@ class Testlar(models.Model):
 class Hashtag(models.Model):
     # test = models.ForeignKey(Testlar, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, unique=True, db_index=True)
-    tag = models.BooleanField(default=False)
 
 
 class TestlarHashtag(models.Model):
     test = models.ForeignKey(Testlar, on_delete=models.CASCADE)
     hashtag = models.ForeignKey(Hashtag, on_delete=models.CASCADE)
+    tag = models.BooleanField(default=False)
 
 # class Alias(models.Model):
 #     name = models.CharField(max_length=100, unique=True, db_index=True)

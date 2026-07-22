@@ -71,7 +71,7 @@ async def ai_generate_hashtags(nom: str, fan: str, tavsif: str):
 
     Qoidalar:
 
-    - Har bir hashtag # bilan boshlansin.
+    - # ni ishlatma.
     - Faqat bitta so'zdan iborat bo'lsin.
     - Faqat kichik harflardan foydalaning.
     - Faqat harf va raqamlardan foydalaning.
@@ -84,22 +84,22 @@ async def ai_generate_hashtags(nom: str, fan: str, tavsif: str):
 
     - Agar nom yoki tavsifda sinf ko'rsatilgan bo'lsa, mos hashtagni ALBATTA qo'shing.
         Misollar:
-        1-sinf → #1sinf
-        2-sinf → #2sinf
-        10-sinf → #10sinf
+        1-sinf → 1sinf
+        2-sinf → 2sinf
+        10-sinf → 10sinf
 
     - Agar fan ko'rsatilgan bo'lsa, fan nomini ALBATTA hashtag sifatida qo'shing.
         Masalan:
-        Fizika → #fizika
-        Matematika → #matematika
+        Fizika → fizika
+        Matematika → matematika
 
     - Agar tavsifda muhim mavzu (masalan Nyuton, Algebra, Geometriya va boshqalar) mavjud bo'lsa, unga mos hashtagni qo'shing.
 
     - Qolgan hashtaglar auditoriya, ta'lim, test, mashq va mavzuni ifodalovchi mos hashtaglardan tanlansin.
 
-    Har doim 10 ta hashtag qaytaring.
+    Har doim kamida 5 ta ko'pida 10 ta hashtag qaytaring.
 
-    tag=1 bo'lgan hashtaglar soni 3–5 ta bo'lsin.
+    tag=1 bo'lgan hashtaglar soni 3 yoki 4 yoki 5 ta bo'lsin.
     Qolganlari tag=0 bo'lsin.
 
     Natija formati:
@@ -109,7 +109,7 @@ async def ai_generate_hashtags(nom: str, fan: str, tavsif: str):
         "fan": "...",
         "hashtags": [
         {
-            "name": "#1sinf",
+            "name": "1sinf",
             "tag": 1
         }
         ]
@@ -173,8 +173,8 @@ async def process_generate_hashtags(test_id: int, nom: str, fan:str, tavsif:str)
 ),
 
 ins AS (
-    INSERT INTO myapp_hashtag (name, tag)
-    SELECT DISTINCT name, tag FROM input
+    INSERT INTO myapp_hashtag (name)
+    SELECT DISTINCT name FROM input
     ON CONFLICT (name) DO UPDATE 
     SET name = EXCLUDED.name
     RETURNING id, name
@@ -190,10 +190,11 @@ all_tags AS (
     WHERE name IN (SELECT name FROM input)
 )
 
-INSERT INTO myapp_testlarhashtag (hashtag_id, test_id)
+INSERT INTO myapp_testlarhashtag (hashtag_id, test_id, tag)
 SELECT
     a.id,
-    :test_id
+    :test_id,
+    i.tag
 FROM input i
 JOIN all_tags a ON a.name = i.name
 ON CONFLICT DO NOTHING;

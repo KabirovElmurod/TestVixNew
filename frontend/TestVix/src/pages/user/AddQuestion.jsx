@@ -16,41 +16,41 @@ const AddQuestion = () => {
   const [state, setState] = useState(location.state)
   // console.log(location);
   // console.log(location.state);
-  
+
 
   const [svg, setSVG] = useState('')
   const [svg_json, setSVGJSON] = useState(JSON.stringify(
     {
-  "elements": []
-}
-  ) )
+      "elements": []
+    }
+  ))
 
-  
+
   const { test_id: testID, key: testKey, hash_url: hashUrl } = useParams();
   const navigate = useNavigate();
 
   const [questionText, setQuestionText] = useState(location.state ? location.state.text : '');
   const [options, setOptions] = useState(
-    location.state ? location.state.variantlar: [
-    { id: 1, text: '', is_true: true },
-    { id: 2, text: '', is_true: false },
-    { id: 3, text: '', is_true: false },
-    { id: 4, text: '', is_true: false },
-  ]);
+    location.state ? location.state.variantlar : [
+      { id: 1, text: '', is_true: true },
+      { id: 2, text: '', is_true: false },
+      { id: 3, text: '', is_true: false },
+      { id: 4, text: '', is_true: false },
+    ]);
 
-  const [isMathModalOpen, setIsMathModalOpen] = useState(false); 
-  const [initialMathFormula, setInitialMathFormula] = useState(''); 
+  const [isMathModalOpen, setIsMathModalOpen] = useState(false);
+  const [initialMathFormula, setInitialMathFormula] = useState('');
   const [mathTarget, setMathTarget] = useState(null);
-  const [message, setMessage] = useState(''); 
+  const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
 
 
-  useEffect(()=>{
+  useEffect(() => {
     setSVGJSON(
       location.state == undefined ? JSON.stringify(
         {
-      "elements": []
-    }
+          "elements": []
+        }
       ) : location.state.svg_json
     )
   }, [])
@@ -67,11 +67,11 @@ const AddQuestion = () => {
   const handleRemoveOption = (id) => {
     if (options.length > 2) {
       setOptions(options.filter(opt => opt.id !== id));
-      if(state){
+      if (state) {
         setState(prev => ({
           ...prev,
           variantlar: prev.variantlar.map(item =>
-            item.id === id 
+            item.id === id
               ? { ...item, is_delete: true }
               : item
           )
@@ -85,7 +85,7 @@ const AddQuestion = () => {
 
   const handleOptionChange = (id, text) => {
     setOptions(options.map(opt => opt.id === id ? { ...opt, text } : opt));
-    if(state){
+    if (state) {
       setState(prev => ({
         ...prev,
         variantlar: prev.variantlar.map(item =>
@@ -99,13 +99,13 @@ const AddQuestion = () => {
 
   const handleSetCorrect = (id) => {
     setOptions(options.map(opt => ({ ...opt, is_true: opt.id === id })));
-    if(state){
+    if (state) {
       setState(prev => ({
         ...prev,
         variantlar: prev.variantlar.map(item =>
           item.id === id
             ? { ...item, is_true_edit: true }
-            : {...item, is_true_edit:false}
+            : { ...item, is_true_edit: false }
         )
       }));
     }
@@ -165,8 +165,8 @@ const AddQuestion = () => {
         if (mathTarget.type === 'question') {
           const newQuestionText = questionText.substring(0, mathTarget.startIndex) + questionText.substring(mathTarget.endIndex);
           setQuestionText(newQuestionText);
-          
-          if(state){
+
+          if (state) {
             setState(prev => ({
               ...prev,
               is_edit: prev.text != newQuestionText
@@ -176,7 +176,7 @@ const AddQuestion = () => {
           setOptions(prevOptions => prevOptions.map(opt =>
             opt.id === mathTarget.id ? { ...opt, text: opt.text.substring(0, mathTarget.startIndex) + opt.text.substring(mathTarget.endIndex) } : opt
           ));
-          if(state){
+          if (state) {
             setState(prev => ({
               ...prev,
               variantlar: prev.variantlar.map(item =>
@@ -192,8 +192,8 @@ const AddQuestion = () => {
       if (mathTarget.isAdding) { // Adding new math
         if (mathTarget.type === 'question') {
           setQuestionText(prev => (prev ? prev + ' ' : '') + updatedLatexString);
-          
-          if(state){
+
+          if (state) {
             setState(prev => ({
               ...prev,
               is_edit: true
@@ -203,8 +203,8 @@ const AddQuestion = () => {
           setOptions(prevOptions => prevOptions.map(opt =>
             opt.id === mathTarget.id ? { ...opt, text: (opt.text ? opt.text + ' ' : '') + updatedLatexString } : opt
           ));
-          
-          if(state){
+
+          if (state) {
             setState(prev => ({
               ...prev,
               variantlar: prev.variantlar.map(item =>
@@ -218,11 +218,11 @@ const AddQuestion = () => {
       } else { // Editing existing math
         if (mathTarget.type === 'question') {
           const newQuestionText = questionText.substring(0, mathTarget.startIndex) +
-                                  updatedLatexString +
-                                  questionText.substring(mathTarget.endIndex);
+            updatedLatexString +
+            questionText.substring(mathTarget.endIndex);
           setQuestionText(newQuestionText);
-          
-          if(state){
+
+          if (state) {
             setState(prev => ({
               ...prev,
               is_edit: prev.text != newQuestionText
@@ -232,14 +232,14 @@ const AddQuestion = () => {
           setOptions(prevOptions => prevOptions.map(opt => {
             if (opt.id === mathTarget.id) {
               const newOptionText = opt.text.substring(0, mathTarget.startIndex) +
-                                    updatedLatexString +
-                                    opt.text.substring(mathTarget.endIndex);
+                updatedLatexString +
+                opt.text.substring(mathTarget.endIndex);
               return { ...opt, text: newOptionText };
             }
             return opt;
           }));
-          
-          if(state){
+
+          if (state) {
             setState(prev => ({
               ...prev,
               variantlar: prev.variantlar.map(item =>
@@ -270,7 +270,7 @@ const AddQuestion = () => {
       setMessageType('error');
       return;
     }
-    for(let i = 0; i < options.length; i++) {
+    for (let i = 0; i < options.length; i++) {
       if (!options[i].text.trim()) {
         setMessage('Javoblarni kiriting!');
         setMessageType('error');
@@ -279,26 +279,26 @@ const AddQuestion = () => {
     }
     // Saqlash logikasi bu yerda bo'ladi
     let data;
-    if(state){
+    if (state) {
       data = {}
-      
+
       data.test_id = Number(testID)
       data.key = testKey
       data.hash_url = hashUrl
       // if(state.is_edit) 
-      data.text =  state.is_edit ? questionText:null
-      data.is_edit = state.is_edit 
+      data.text = state.is_edit ? questionText : null
+      data.is_edit = state.is_edit
       // if(state.is_svg_json_edit) 
       data.svg_json = state.is_svg_json_edit ? svg_json : null
-      data.is_svg_json_edit = state.is_svg_json_edit 
-      data.savol_id = Number(state.id) 
+      data.is_svg_json_edit = state.is_svg_json_edit
+      data.savol_id = Number(state.id)
       data.hash_id = state.hash_id
       data.new_variantlar = options
       data.old_variantlar = state.variantlar
-      
+
       data = await updateSavol(data);
     }
-    else{
+    else {
       data = {
         test_id: Number(testID),
         key: testKey,
@@ -312,23 +312,23 @@ const AddQuestion = () => {
     // console.log(data);
     setMessage(data.message || 'Savol muvaffaqiyatli saqlandi!');
     setMessageType(data.status ? 'success' : 'error');
-    if(data.status) setTimeout(() => navigate(`/test/questions/${testID}/${testKey}/${hashUrl}`), 1500);
+    if (data.status) setTimeout(() => navigate(`/test/questions/${testID}/${testKey}/${hashUrl}`), 1500);
   };
 
 
 
-  
+
 
   return (
     <div className="add-question-page">
-      <Message 
-        type={messageType} 
-        message={message} 
+      <Message
+        type={messageType}
+        message={message}
         onClose={() => setMessage('')}
         duration={3000}
       />
-      
-      <MathModal 
+
+      <MathModal
         isOpen={isMathModalOpen}
         onClose={() => setIsMathModalOpen(false)}
         onConfirm={handleMathConfirm}
@@ -355,19 +355,19 @@ const AddQuestion = () => {
             <textarea
               placeholder="Savol matnini kiriting..."
               value={questionText}
-              onChange={(e) =>{
+              onChange={(e) => {
                 setQuestionText(e.target.value)
-                if(state){
+                if (state) {
                   setState(prev => ({
                     ...prev,
-                    is_edit: prev.text!=e.target.value
+                    is_edit: prev.text != e.target.value
                   }));
                 }
                 // if(state.text != e.target.value){
                 //   state.is_edit = true
                 // }
-              } 
-            }
+              }
+              }
               className="question-input"
             />
             {questionText.includes('$') && (
@@ -400,7 +400,7 @@ const AddQuestion = () => {
                   <div className="option-prefix">
                     {String.fromCharCode(65 + index)}
                   </div>
-                  
+
                   <div className="option-main">
                     <input
                       type="text"
@@ -412,7 +412,7 @@ const AddQuestion = () => {
                       }
                     />
                     {option.text.includes('$') && (
-                      <div className="math-preview-box-inline" style={{marginTop: '8px'}}>
+                      <div className="math-preview-box-inline" style={{ marginTop: '8px' }}>
                         <MathText
                           text={option.text}
                           onMathClick={handleMathElementClick}
@@ -423,15 +423,15 @@ const AddQuestion = () => {
                     )}
                   </div>
                   <div className="option-actions">
-                    <button 
-                      className="action-icon math" 
+                    <button
+                      className="action-icon math"
                       onClick={() => openMathModalForAdding('option', option.id)}
                       title="Matematik ifoda"
                     >
                       <i className="bi bi-calculator"></i>
                     </button>
-                    
-                    <button 
+
+                    <button
                       className={`action-icon check ${option.is_true ? 'checked' : ''}`}
                       onClick={() => handleSetCorrect(option.id)}
                       title="To'g'ri javob"
@@ -439,8 +439,8 @@ const AddQuestion = () => {
                       <i className={`bi ${option.is_true ? 'bi-check-circle-fill' : 'bi-circle'}`}></i>
                     </button>
 
-                    <button 
-                      className="action-icon delete" 
+                    <button
+                      className="action-icon delete"
                       onClick={() => handleRemoveOption(option.id)}
                       disabled={options.length <= 2}
                     >
@@ -461,14 +461,14 @@ const AddQuestion = () => {
           <div className="footer-actions">
             <button className="cancel-btn" onClick={() => navigate(-1)}>Bekor qilish</button>
             {
-              state ? 
-            <button className="save-btn" onClick={handleSave}>
-              <i className="bi bi-cloud-check"></i> Savolni yangilash
-            </button>
-            :
-            <button className="save-btn" onClick={handleSave}>
-              <i className="bi bi-cloud-check"></i> Savolni saqlash
-            </button>
+              state ?
+                <button className="save-btn" onClick={handleSave}>
+                  <i className="bi bi-cloud-check"></i> Savolni yangilash
+                </button>
+                :
+                <button className="save-btn" onClick={handleSave}>
+                  <i className="bi bi-cloud-check"></i> Savolni saqlash
+                </button>
             }
           </div>
         </div>

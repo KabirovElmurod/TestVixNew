@@ -1,17 +1,18 @@
-.test-card-deleted{
+.test-card-deleted {
     transform: scale(0);
     overflow: hidden;
     border-radius: 100%;
     padding: 0;
     // transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
 }
+
 .test-card {
     background: var(--surface);
     border: 1px solid var(--nav-border);
     border-radius: 16px;
     padding: 18px;
-    display: flex;
-    flex-direction: column;
+    // display: flex;
+    // flex-direction: column;
     // justify-content: space-between;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     transition: transform 0.5s ease, box-shadow 0.2s ease, scale 7s ease;
@@ -21,7 +22,8 @@
         // transform: translateY(-5px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
-    .test-card-content{
+
+    .test-card-content {
         display: flex;
         flex-direction: column;
         align-items: start;
@@ -34,33 +36,42 @@
         // align-items: center;
         // margin-bottom: 10px;
         width: 100%;
-        .card-icon{
+
+        .card-icon {
             display: flex;
             align-items: center;
             gap: 6px;
-            i{
+
+            i {
                 font-size: 16px;
                 border-radius: 10px;
                 padding: 4px 8px;
             }
-            
+
         }
-        .card-icon-public{
-            i{
+
+        .card-icon-public {
+            i {
                 background: rgb(208, 255, 208); // Using existing variable
                 color: rgb(1, 235, 1);
             }
         }
-         .card-icon-private{
-            i{
+
+        .card-icon-private {
+            i {
                 background: rgb(173, 210, 255); // Using existing variable
                 color: rgb(0, 111, 246);
             }
         }
+
         .card-id {
             font-size: 11px;
-            color: var(--text-muted); // Using text-muted for ID
+            color: var(--text); // Using text-muted for ID
             opacity: 0.8;
+            background-color: rgba(113, 210, 255, 0.204);
+            padding: 1px 5px;
+            border-radius: 5px;
+            user-select: none;
         }
 
         .card-actions {
@@ -104,7 +115,8 @@
         // margin-bottom: 10px;
         text-align: left;
         display: -webkit-box;
-        -webkit-line-clamp: 2; /* 2 qator */
+        -webkit-line-clamp: 2;
+        /* 2 qator */
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;

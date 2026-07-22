@@ -1,151 +1,339 @@
 <!DOCTYPE html>
 <html lang="uz">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Logout</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Comments</title>
 
-<link rel="stylesheet"
-href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family: Inter, sans-serif;
-}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
 
-body{
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#f8fafc;
-    padding:20px;
-}
+        body {
+            background: #f5f7fb;
+            padding: 40px;
+        }
 
-.logout-box{
-    width:100%;
-    max-width:430px;
-    background:#fff;
-    border-radius:24px;
-    padding:40px 35px;
-    text-align:center;
-    border:1px solid #eef2f7;
-    box-shadow:0 10px 30px rgba(15,23,42,.06);
-}
+        .container {
+            max-width: 850px;
+            margin: auto;
+        }
 
-.icon-wrapper{
-    width:72px;
-    height:72px;
-    margin:0 auto 24px;
-    border-radius:50%;
-    background:#fff1f2;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
+        .comment-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .06);
+        }
 
-.icon-wrapper i{
-    font-size:32px;
-    color:#e11d48;
-}
+        .comment-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
 
-h2{
-    color:#0f172a;
-    font-size:26px;
-    font-weight:700;
-    margin-bottom:12px;
-}
+        .write-comment {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 35px;
+        }
 
-p{
-    color:#64748b;
-    font-size:15px;
-    line-height:1.7;
-    margin-bottom:30px;
-}
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #4f46e5;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
 
-.actions{
-    display:flex;
-    gap:12px;
-}
+        .input-area {
+            flex: 1;
+        }
 
-.btn{
-    flex:1;
-    border:none;
-    border-radius:14px;
-    padding:14px;
-    font-size:15px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.25s;
-}
+        textarea {
+            width: 100%;
+            resize: none;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 15px;
+            outline: none;
+            transition: .2s;
+        }
 
-.btn-cancel{
-    background:#f1f5f9;
-    color:#475569;
-}
+        textarea:focus {
+            border-color: #4f46e5;
+        }
 
-.btn-cancel:hover{
-    background:#e2e8f0;
-}
+        .actions {
+            margin-top: 12px;
+            text-align: right;
+        }
 
-.btn-logout{
-    background:#0f172a;
-    color:white;
-}
+        button {
+            border: none;
+            background: #4f46e5;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: .2s;
+        }
 
-.btn-logout:hover{
-    background:#1e293b;
-    transform:translateY(-2px);
-}
+        button:hover {
+            background: #3730a3;
+        }
 
-.note{
-    margin-top:20px;
-    font-size:13px;
-    color:#94a3b8;
-}
-</style>
+        .comment {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .comment-name {
+            font-weight: 600;
+        }
+
+        .comment-time {
+            color: #777;
+            font-size: 13px;
+        }
+
+        .comment-text {
+            line-height: 1.7;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .comment-footer {
+            display: flex;
+            gap: 25px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .comment-footer span {
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .comment-footer span:hover {
+            color: #4f46e5;
+        }
+
+        .reply {
+            display: flex;
+            gap: 15px;
+            margin-top: 22px;
+            margin-left: 60px;
+        }
+
+        .reply .avatar {
+            width: 42px;
+            height: 42px;
+            font-size: 14px;
+            background: #64748b;
+        }
+
+        .line {
+            border-top: 1px solid #ececec;
+            margin: 30px 0;
+        }
+
+        .show-replies {
+            margin-left: 60px;
+            color: #4f46e5;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .show-replies:hover {
+            text-decoration: underline;
+        }
+    </style>
+
 </head>
+
 <body>
 
-<div class="logout-box">
+    <div class="container">
 
-    <div class="icon-wrapper">
-        <i class="bi bi-box-arrow-right"></i>
+        <div class="comment-box">
+
+            <div class="comment-title">
+                💬 128 ta izoh
+            </div>
+
+            <div class="write-comment">
+
+                <div class="avatar">
+                    A
+                </div>
+
+                <div class="input-area">
+
+                    <textarea rows="4" placeholder="Fikringizni yozing..."></textarea>
+
+                    <div class="actions">
+                        <button>Yuborish</button>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="line"></div>
+
+            <!-- Comment -->
+
+            <div class="comment">
+
+                <div class="avatar">
+                    A
+                </div>
+
+                <div class="comment-content">
+
+                    <div class="comment-header">
+                        <div class="comment-name">Ali Valiyev</div>
+                        <div class="comment-time">2 soat oldin</div>
+                    </div>
+
+                    <div class="comment-text">
+                        Bu test juda zo'r tuzilgan ekan. Ayniqsa oxirgi savollar real imtihonga juda yaqin.
+                    </div>
+
+                    <div class="comment-footer">
+                        <span>👍 24</span>
+                        <span>💬 Javob berish</span>
+                    </div>
+
+                    <!-- Reply -->
+
+                    <div class="reply">
+
+                        <div class="avatar">
+                            D
+                        </div>
+
+                        <div>
+
+                            <div class="comment-header">
+                                <div class="comment-name">Dilshod</div>
+                                <div class="comment-time">1 soat oldin</div>
+                            </div>
+
+                            <div class="comment-text">
+                                Ha, ayniqsa matematika bo'limi juda yaxshi chiqibdi.
+                            </div>
+
+                            <div class="comment-footer">
+                                <span>👍 6</span>
+                                <span>Javob berish</span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="show-replies">
+                        Yana 3 ta javobni ko'rish
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="line"></div>
+
+            <!-- Second Comment -->
+
+            <div class="comment">
+
+                <div class="avatar">
+                    N
+                </div>
+
+                <div class="comment-content">
+
+                    <div class="comment-header">
+                        <div class="comment-name">Nodirbek</div>
+                        <div class="comment-time">Kecha</div>
+                    </div>
+
+                    <div class="comment-text">
+                        3-savolda javob kalitida xatolik bor deb o'ylayman. Tekshirib ko'rsangiz yaxshi bo'lardi.
+                    </div>
+
+                    <div class="comment-footer">
+                        <span>👍 8</span>
+                        <span>💬 Javob berish</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="line"></div>
+
+            <!-- Third -->
+
+            <div class="comment">
+
+                <div class="avatar">
+                    S
+                </div>
+
+                <div class="comment-content">
+
+                    <div class="comment-header">
+                        <div class="comment-name">Sarvar</div>
+                        <div class="comment-time">3 kun oldin</div>
+                    </div>
+
+                    <div class="comment-text">
+                        Rahmat! Shu kabi testlar yana ko'proq qo'shilsa juda yaxshi bo'lardi.
+                    </div>
+
+                    <div class="comment-footer">
+                        <span>👍 14</span>
+                        <span>💬 Javob berish</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-
-    <h2>Tizimdan chiqish</h2>
-
-    <p>
-        Sessiyangiz yakunlanadi. Davom etishdan oldin,
-        akkauntingizdan chiqishni tasdiqlang.
-    </p>
-
-    <div class="actions">
-        <button class="btn btn-cancel" onclick="history.back()">
-            Qolish
-        </button>
-
-        <button class="btn btn-logout" onclick="logout()">
-            Chiqish
-        </button>
-    </div>
-
-    <div class="note">
-        <i class="bi bi-shield-check"></i>
-        Hisobingiz ma'lumotlari saqlanib qoladi.
-    </div>
-
-</div>
-
-<script>
-function logout(){
-    // Logout logikasi
-    window.location.href = "login.html";
-}
-</script>
 
 </body>
+
 </html>

@@ -44,3 +44,35 @@
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
 }
+
+.add_test_title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    h2 {
+        font-size: 1.8rem;
+        color: var(--text-h);
+        margin: 0;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 50px;
+        // background-color: var(--accent);
+        // color: #ffffff;
+        // border: none;
+        display: flex;
+        gap: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 154, 248, 0.25);
+            color: #ffffff;
+        }
+    }
+}
