@@ -3,7 +3,8 @@ import datetime
 from pydantic import BaseModel
 from typing import Optional
 
-
+class GetPublicTestlarRequest(BaseModel):
+    last_score: int 
 class TestlarCreate(BaseModel):
     nom: str
     fan: str
@@ -11,6 +12,7 @@ class TestlarCreate(BaseModel):
     ispublic: bool = False
     istime: bool = False
     time: Optional[int] = None
+    savollar: list[dict] = None
     # user_id: int
     # test_id: str
     # test_code: str
@@ -48,3 +50,6 @@ class TestlarRead(BaseModel):
 
     class Config:
         from_attributes = True
+class SearchTestRequest(BaseModel):
+    text: str | int
+    type: str 

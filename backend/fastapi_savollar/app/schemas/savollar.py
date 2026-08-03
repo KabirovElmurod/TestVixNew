@@ -13,6 +13,10 @@ class SavollarCreate(BaseModel):
     options: list
     svg_json: str
 
+class GetSavol(BaseModel):
+    id:int
+    test_id: int | str
+    hash_url: str
 
 
 class GetSavollarRequest(BaseModel):
@@ -20,7 +24,11 @@ class GetSavollarRequest(BaseModel):
     key: str
     hash_url: str
 
-
+class FinishSavol(BaseModel):
+    id: int
+    test_id: int | str
+    hash_url: str
+    answers : list | dict
 
 class SavollarUpdate(BaseModel):
     test_id: int | str | None = None

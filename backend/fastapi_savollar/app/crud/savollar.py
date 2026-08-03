@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete, update, insert
+from sqlalchemy import select, delete, update, insert, join
 from sqlalchemy.orm import selectinload
 
 from ...app.crud.func import (
@@ -12,7 +12,8 @@ from ...app.crud.func import (
     generate_hash_savol, 
     verify_hash_savol
 )
-from ..models.savollar import Savollar, Variantlar
+from ..models.savollar import Natijalar, Savollar, Variantlar
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from ..schemas.savollar import SavollarCreate, SavollarUpdate, GetSavollarRequest
 # from ..app.crud. import created_to_human_time
 async def get_id_by_username(db: AsyncSession, username: str):
@@ -49,9 +50,36 @@ async def get_savollar_by_id(db: AsyncSession, savollar_id: int):
     return result.scalar_one_or_none()
 
 
-async def get_savollar_by_savol_id(db: AsyncSession, savol_id: str):
-    result = await db.execute(select(Savollar).where(Savollar.savol_id == savol_id))
-    return result.scalar_one_or_none()
+async def get_savol_by_test_id(db: AsyncSession, test_id: int):
+    result = await db.execute(
+        select(Savollar, Variantlar)
+        .join(Variantlar, Variantlar.savol_id == Savollar.id)
+        .where(Savollar.test_id == test_id)
+    )
+
+    rows = result.all()
+
+    savollar = {}
+
+    for savol, variant in rows:
+        if savol.id not in savollar:
+            savollar[savol.id] = {
+                "id": savol.id,
+                "test_id": savol.test_id,
+                'savol_hash': generate_hash_savol(savol.id, test_id),
+                "text": savol.text,
+                "svg_json": savol.svg_json,
+                "variantlar": []
+            }
+
+        savollar[savol.id]["variantlar"].append({
+            "id": variant.id,
+            "text": variant.text,
+            'v_hash': generate_hash_url(variant.id, savollar[savol.id]['savol_hash'])
+        })
+
+    return list(savollar.values())
+    # return result.scalar_one_or_none()
 
 
 async def get_savollar_by_savol_code(db: AsyncSession, savol_code: str):
@@ -209,3 +237,77 @@ async def delete_savollar(db: AsyncSession, test_id: str|int, savol_id: str|int)
     await db.execute(result)
     await db.commit()
     return True
+
+
+async def finish_check_savol(db: AsyncSession, data, user_id):
+    true_son = 0
+    false_son = 0
+    answers_data = data.answers
+
+    # Testdagi barcha savol ID larini bazadan olamiz
+    all_savollar_result = await db.execute(
+        select(Savollar.id).where(Savollar.test_id == data.id)
+    )
+    all_savol_ids = [row.id for row in all_savollar_result]
+
+    if not all_savol_ids:
+        return {"status": False, "message": "Testda savollar mavjud emas."}
+
+    # Barcha kerakli to'g'ri variantlarni bitta so'rovda bazadan olamiz
+    true_variants_result = await db.execute(
+        select(Variantlar.savol_id, Variantlar.id)
+        .where(Variantlar.savol_id.in_(all_savol_ids))
+        .where(Variantlar.is_true == True)
+    )
+    # {savol_id: true_variant_id} ko'rinishidagi map yaratamiz
+    true_variants_map = {row.savol_id: row.id for row in true_variants_result}
+    answers_result = {}
+
+    for savol_id in all_savol_ids:
+        savol_id_str = str(savol_id)
+        answer = answers_data.get(savol_id_str)
+        true_variant_id = true_variants_map.get(savol_id)
+        is_correct = False
+        is_checked = False
+        selected_v_id = None
+
+        if answer: # Foydalanuvchi bu savolga javob bergan
+            is_checked = True
+            selected_v_id = answer.get('v_id')
+            if true_variant_id is not None and selected_v_id == true_variant_id:
+                true_son += 1
+                is_correct = True
+            else:
+                false_son += 1
+        else: # Foydalanuvchi javob bermagan
+            false_son += 1
+
+        answers_result[savol_id] ={
+            'savol_id': savol_id,
+            'v_id': selected_v_id,
+            'is_true': is_correct,
+            'is_checked': is_checked,
+            'is_true_id': true_variant_id
+        }
+
+    # Natijalarni bazaga yozish uchun ma'lumotlarni tayyorlaymiz
+    natija_data = {
+        "user_id": user_id,
+        "test_id": data.id,
+        "sum_son": len(all_savol_ids),
+        "true_son": true_son,
+        "false_son": false_son,
+        "answer": answers_result,
+        "isfinish": True
+    }
+
+    # PostgreSQL uchun "upsert" (ON CONFLICT DO UPDATE) so'rovi
+    stmt = pg_insert(Natijalar).values(natija_data)
+    # stmt = stmt.on_conflict_do_update(
+    #     index_elements=['user_id', 'test_id'],  # Bu ustunlar birgalikda unikal bo'lishi kerak
+    #     set_=natija_data
+    # )
+    await db.execute(stmt)
+    await db.commit()
+
+    return {"status": True, "message": "Test muvaffaqiyatli yakunlandi!", "result": natija_data}

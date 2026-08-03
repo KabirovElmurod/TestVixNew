@@ -12,13 +12,14 @@ import { ThemeProvider } from "./context/ThemeContext";
 
 // Logindan o'tganlar uchun
 const HomeUser = lazy(() => import("./pages/user/HomeUser"));
-const AddTest = lazy(() => import("./pages/user/AddTest"));
+const AddTest = lazy(() => import("./pages/user/AddTest/AddTest"));
 const MyTests = lazy(() => import("./pages/user/MyTests"));
 const Question = lazy(() => import("./pages/user/Question"));
 const AddQuestion = lazy(() => import("./pages/user/AddQuestion"));
 const ShowTest = lazy(() => import("./pages/user/ShowTest/ShowTest"));
 const Testlar = lazy(() => import("./pages/user/Testlar/Testlar"));
 const StartTest = lazy(() => import("./pages/user/StartTest/StartTest"))
+const FinishTest = lazy(() => import("./pages/user/FinishTest/FinishTest"))
 
 // Navbar yoki sidebar uchun
 import Navbar from "./components/Navbar";
@@ -63,13 +64,12 @@ function AppContent() {
                 <Route path="/" element={<HomeUser></HomeUser>} />
                 <Route path="/add_test" element={<AddTest></AddTest>} />
                 <Route path="/my_test" element={<MyTests></MyTests>}></Route>
-                <Route path="/test/show/:test_id/" element={<ShowTest></ShowTest>}></Route>
+                <Route path="/test/show/:id/:test_id/:hash_url" element={<ShowTest></ShowTest>}></Route>
                 <Route path="/test/questions/:test_id/:key/:hash_url" element={<Question></Question>}></Route>
                 <Route path="/test/add_question/:test_id/:key/:hash_url" element={<AddQuestion></AddQuestion>}></Route>
                 <Route path="/testlar" element={<Testlar></Testlar>}></Route>
-                <Route path="/test/start/:test_id/" element={<StartTest></StartTest>}></Route>
-
-
+                <Route path="/test/start/:id/:test_id/:hash_url" element={<StartTest></StartTest>}></Route>
+                <Route path="/test/finish/:id/:test_id/:hash_url" element={<FinishTest></FinishTest>}></Route>
 
                 <Route path='/logout' element={<Logout></Logout>}></Route>
 

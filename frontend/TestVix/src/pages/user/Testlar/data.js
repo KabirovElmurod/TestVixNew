@@ -122,5 +122,5 @@ export const test_data = [
 ];
 
 export const categor = [
-    "Matematika", 'DTM', 'Tarix', 'Fizika', 'Python', 'AI'
+    // "Matematika", 'DTM', 'Tarix', 'Fizika', 'Python', 'AI'
 ]

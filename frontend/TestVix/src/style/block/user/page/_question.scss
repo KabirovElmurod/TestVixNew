@@ -370,8 +370,8 @@
 }
 
 
-.question-navigator-container {
-  width: 40%;
+.questions-page-wrapper .question-navigator-container {
+  width: 40% !important;
   flex-shrink: 0;
   transition: all 0.3s ease;
 
@@ -382,7 +382,7 @@
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(4px);
     z-index: 1000;
-    width: 70%;
+    width: 100% !important;
     visibility: hidden;
     opacity: 0;
 

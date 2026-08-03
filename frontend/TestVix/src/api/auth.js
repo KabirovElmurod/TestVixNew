@@ -22,7 +22,7 @@ export const registerUser = async (data) => {
 
 export const verify_token = async () => {
   // return false
-  return true
+  // return true
   const res = await fetch(`${API}/auth/me`, {
     method: "GET",
     credentials: "include",

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, Text
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, Text, JSON
 from sqlalchemy.orm import relationship
 from ..base import Base
 
@@ -44,4 +44,17 @@ class Variantlar(Base):
     text = Column(Text, nullable=True)
     is_true = Column(Boolean, nullable=True)
     savol = relationship("Savollar", back_populates="variantlar")
-    
+
+class Natijalar(Base):
+    __tablename__ = "myapp_natijalar"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False)
+    test_id = Column(Integer, ForeignKey("myapp_testlar.id", ondelete="CASCADE"))
+    sum_son = Column(Integer, default=0)
+    true_son = Column(Integer, default=0)
+    false_son = Column(Integer, default=0)
+    answer = Column(JSON, nullable=True)
+    isfinish = Column(Boolean, default=False)
+    created = Column(DateTime, default=func.now())
+    isfinish = Column(Boolean, default=False)
+    created = Column(DateTime, default=func.now())

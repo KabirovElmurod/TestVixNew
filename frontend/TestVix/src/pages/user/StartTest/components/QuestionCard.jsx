@@ -37,7 +37,7 @@ const QuestionCard = ({ question, index, selectedAnswer, onAnswerSelect }) => {
         {question.variantlar.map((option, optionIndex) => (
           <div
             key={optionIndex}
-            className={`option-item ${selectedAnswer === optionIndex ? 'selected' : ''}`}
+            className={`option-item ${selectedAnswer === option.id ? 'selected' : ''}`}
             onClick={() => handleOptionClick(optionIndex)}
           >
             <span className="prefix">{String.fromCharCode(65 + optionIndex)}</span>

@@ -1,5 +1,10 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useContext, useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useSearchCon } from '../../../context/SearchContext'
+import { getShowTest } from '../../../api/request_testlar'
+import { AuthContext } from '../../../context/AuthContext'
+// import { useSearchCon } from '../../context/SearchContext'
+
 const getInitials = (name) => {
     return name
         .split(' ')
@@ -10,7 +15,9 @@ const getInitials = (name) => {
 }
 
 export default function ShowTest() {
+    const { id: id, test_id: test_id, hash_url: hash_url } = useParams()
     const navigate = useNavigate()
+    const { logout } = useContext(AuthContext)
 
     // useEffect(() => {
     //     return () => {
@@ -24,6 +31,17 @@ export default function ShowTest() {
     const [replyingTo, setReplyingTo] = useState(null)
     const [replyText, setReplyText] = useState('')
     const [expandedReplies, setExpandedReplies] = useState({})
+    // const [test, setTest] = useState([])
+    const [test, setTest] = useState(() => {
+        let value = localStorage.getItem("test");
+        if (value) {
+            value = JSON.parse(value)
+            if (value.test_id == test_id && value.hash_url == hash_url) {
+                return value
+            }
+        }
+        else return 'no_test'
+    });
     const [comments, setComments] = useState([
         {
             id: 1,
@@ -79,7 +97,31 @@ export default function ShowTest() {
         return () => clearTimeout(timer);
     }, []);
 
+    useEffect(() => {
+        async function showTest() {
+            let data = {
+                id: Number(id),
+                test_id: test_id,
+                hash_url: hash_url
+            }
+            const response = await getShowTest(data)
+            if (response.user == false) {
+                logout()
+                navigate('/login')
+                return
+            }
+            if (response.status == false) {
+                navigate('/testlar')
+            }
+            setTest(response)
+            localStorage.setItem("test", JSON.stringify(response));
+            console.log(response);
 
+        }
+        if (test == 'no_test') {
+            showTest()
+        }
+    }, [test, test_id, hash_url, logout, navigate])
 
 
     // const handle
@@ -206,7 +248,21 @@ export default function ShowTest() {
     }
 
     const handleStartNav = () => {
-        navigate('/test/start/14/')
+        localStorage.removeItem('test_answers')
+        localStorage.removeItem('test_answered')
+        localStorage.removeItem('test_result')
+        localStorage.removeItem('test_savol')
+        navigate(`/test/start/${id}/${test_id}/${hash_url}`)
+    }
+
+    const { searchText, setSearchText } = useSearchCon()
+    const handleSearchTag = (tag) => {
+        setSearchText(
+            {
+                'text': tag,
+                'submit': 1
+            }
+        )
     }
 
     return (
@@ -218,7 +274,7 @@ export default function ShowTest() {
                         <div className='id_div'>
                             <i className='bi bi-globe'></i>
                             <p>
-                                ID: 1234
+                                ID: {test.test_id}
                             </p>
                         </div>
                         <div className='vis_div'>
@@ -229,10 +285,10 @@ export default function ShowTest() {
                     </div>
                     <div className='nom_fan_div'>
                         <h2>
-                            Matematika 1-sinf
+                            {test.nom}
                         </h2>
                         <p>
-                            Matematika fan
+                            {test.fan}
                         </p>
                     </div>
                     <div className='user_sub_div'>
@@ -265,19 +321,19 @@ export default function ShowTest() {
                             <div>
                                 <i className='bi bi-book'></i>
                                 <span>Savollar</span>
-                                <p>2</p>
+                                <p>{test.savollar_soni} </p>
                             </div>
                             <div>
                                 <i className='bi bi-clock'></i>
                                 <span>Vaqt</span>
-                                <p>2</p>
+                                <p>{test.time} </p>
                             </div>
                         </div>
                         <div className='content_div_div'>
                             <div>
-                                <i className='bi bi-star'></i>
-                                <span>Baho</span>
-                                <p>4.5</p>
+                                <i className='bi bi-calendar'></i>
+                                <span>Tuzilgan</span>
+                                <p>{test.created} </p>
                             </div>
                             <div>
                                 <i className='bi bi-people'></i>
@@ -289,20 +345,23 @@ export default function ShowTest() {
 
                     <div className='start_div'>
                         <button className='btn' onClick={handleStartNav}>
-                            Boshlashsss
+                            Boshlash
                         </button>
                     </div>
 
                     <div className='tavsif_div'>
                         <p>
-                            Tavsif
+                            {test.tavsif}
                         </p>
                     </div>
                     <div className='hashtag_div'>
-                        <span>#matematika</span>
-                        <span>#matematika</span>
-                        <span>#matematika</span>
-                        <span>#matematika</span>
+                        {
+                            test.hashtag_names?.map((item, index) => {
+                                return (
+                                    <span key={index} onClick={() => handleSearchTag(item)}>#{item}</span>
+                                )
+                            })
+                        }
                     </div>
                 </div>
                 <div className='star_div'>

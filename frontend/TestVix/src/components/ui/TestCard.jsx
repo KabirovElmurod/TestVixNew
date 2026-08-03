@@ -56,7 +56,7 @@ export default function TestCard({ test, handleCopyId }) {
                 </div>
                 <button className="icon-button" onClick={() => {
                     localStorage.setItem('test', JSON.stringify(test))
-                    navigate(`/test/show/${test.test_id}`)
+                    navigate(`/test/show/${test.id}/${test.test_id}/${test.hash_url}`)
                 }}>
                     Ko'rish <i className="bi bi-arrow-right"></i>
                 </button>

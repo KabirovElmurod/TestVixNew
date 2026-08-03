@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { deleteSavol, getSavollar } from '../../api/request_savollar';
+import { deleteSavol, getSavolById } from '../../api/request_savollar';
 // import { getSavollar } from '../../api/test';
 import SVGShow from '../../components/ui/SVGShow';
 import ConfirmModal from '../../components/ui/ConfirmModal';
@@ -10,7 +10,7 @@ import Message from '../../components/ui/Message';
 // import { logoutUser } from '../../api/auth';
 // import '../../../style/block/user/page/_question.scss';
 
-const QuestionCard = ({ question, onEdit, onDelete, index, testIDKeyHash}) => {
+const QuestionCard = ({ question, onEdit, onDelete, index, testIDKeyHash }) => {
   // const navigate = useNavigation()
   const [svg, setSvg] = useState('');
   const [json, setJson] = useState(() => {
@@ -27,7 +27,7 @@ const QuestionCard = ({ question, onEdit, onDelete, index, testIDKeyHash}) => {
       <div className="card-header">
         <div className="q-badge">
           <i className="bi bi-hash"></i>
-          <span>Savol {index+1}</span>
+          <span>Savol {index + 1}</span>
         </div>
         <div className="actions">
           <button className="action-btn edit" title="Tahrirlash" onClick={() => onEdit(question)}>
@@ -41,9 +41,9 @@ const QuestionCard = ({ question, onEdit, onDelete, index, testIDKeyHash}) => {
 
       <h2 className="question-body"><MathText text={question.text} /></h2>
       {
-        json ? 
-        <SVGShow svg={svg} setSVG={setSvg} json={json} />
-        : null
+        json ?
+          <SVGShow svg={svg} setSVG={setSvg} json={json} />
+          : null
       }
 
 
@@ -70,7 +70,7 @@ const QuestionCard = ({ question, onEdit, onDelete, index, testIDKeyHash}) => {
 const StarRating = ({ rating }) => {
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 !== 0;
-  
+
   return (
     <div className="star-rating">
       {[...Array(5)].map((_, i) => (
@@ -138,19 +138,19 @@ const QuestionsPage = () => {
       key: testKey,
       hash_url: hashUrl
     }
-    const response = await getSavollar(data);
+    const response = await getSavolById(data);
     // console.log('response=>', response);
-    
+
     if (response.user == false) {
       logout();
       navigate('/login');
       return;
     }
-    
+
     setQuestions(response.data);
     // console.log(response);
     // console.log('data=>', response.data);
-    
+
   };
 
   useEffect(() => {
@@ -200,14 +200,14 @@ const QuestionsPage = () => {
   }, [questions]);
 
   const handleAddQuestion = () => {
-    
+
     navigate(`/test/add_question/${testID}/${testKey}/${hashUrl}`);
     // alert('Yangi savol qo‘shish funksiyasi hali amalga oshirilmagan!');
     // Implement navigation to a form or open a modal for adding a new question
   };
 
   const handleEditQuestion = (question) => {
-    navigate(`/test/add_question/${testID}/${testKey}/${hashUrl}`, {state:question});
+    navigate(`/test/add_question/${testID}/${testKey}/${hashUrl}`, { state: question });
     // alert(`Savol ${id} ni tahrirlash funksiyasi hali amalga oshirilmagan!`);
     // Implement navigation to an edit form or open a modal for editing
   };
@@ -221,7 +221,7 @@ const QuestionsPage = () => {
     testIDKeyHash['savol_id'] = questions[deleteModal.questionId].id;
     handleCloseDeleteModal()
     let res = await deleteSavol(testIDKeyHash);
-    if (res.user==false){
+    if (res.user == false) {
       setMessage('Sessiya tugagan. Tizimga qaytadan kiring!');
       setMessageType('error');
       setTimeout(() => {
@@ -230,7 +230,7 @@ const QuestionsPage = () => {
       }, 2000);
       return;
     }
-    if (res.status == false){
+    if (res.status == false) {
       setMessage(res.message || 'Savolni o\'chirishda xatolik yuz berdi!');
       setMessageType('error');
       return;
@@ -256,14 +256,14 @@ const QuestionsPage = () => {
     setMessage('');
   }, []);
   return (
-    
+
     <div className="questions-page-wrapper">
-      <Message 
-              type={messageType} 
-              message={message} 
-              onClose={handleCloseMessage} 
-              duration={4000}
-            />
+      <Message
+        type={messageType}
+        message={message}
+        onClose={handleCloseMessage}
+        duration={4000}
+      />
       <button className="mobile-nav-toggle" onClick={() => setIsNavOpen(true)}>
         <i className="bi bi-list-ol"></i>
         <span>Savollar</span>
@@ -284,7 +284,7 @@ const QuestionsPage = () => {
               <h1 className="test-title">{test.nom}</h1>
               <p className="test-description">{test.tavsif}</p>
             </div>
-            
+
             <div className="test-footer-stats">
               <div className="stat-group">
                 <div className="stat-item">
@@ -344,7 +344,7 @@ const QuestionsPage = () => {
                   onDelete={handleDeleteQuestion}
                   index={index}
                   testIDKeyHash={testIDKeyHash}
-                  // testId={testId}
+                // testId={testId}
                 />
               </div>
             ))}

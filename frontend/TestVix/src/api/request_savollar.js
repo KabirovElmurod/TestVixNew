@@ -1,8 +1,25 @@
-const API_URl_savollar = 'http://localhost/api2/savollar/';
+const API_URl_savollar = 'http://localhost/api2/savollar';
 
 
-export const getSavollar = async (data) => {
-    const res = await fetch(`${API_URl_savollar}/get_savollar`, {
+export const getSavol = async (data) => {
+    const res = await fetch(`${API_URl_savollar}/get_savol`, {
+        method: 'POST',
+        'credentials': 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+
+    }
+    );
+    return res.json();
+}
+
+
+
+
+export const getSavolById = async (data) => {
+    const res = await fetch(`${API_URl_savollar}/get_savollar_by_id`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -43,6 +60,18 @@ export const updateSavol = async (savolData) => {
 
 export const deleteSavol = async (data) => {
     const res = await fetch(`${API_URl_savollar}/delete_savol`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    return res.json();
+}
+
+export const finishSavol = async (data) => {
+    const res = await fetch(`${API_URl_savollar}/finish_savol`, {
         method: 'POST',
         credentials: 'include',
         headers: {

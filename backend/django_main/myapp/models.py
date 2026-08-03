@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.postgres.indexes import GinIndex
 
 class User(models.Model):
     username = models.CharField(max_length=100, unique=True, db_index=True)
@@ -32,7 +32,14 @@ class Testlar(models.Model):
 class Hashtag(models.Model):
     # test = models.ForeignKey(Testlar, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, unique=True, db_index=True)
-
+    class Meta:
+        indexes = [
+            GinIndex(
+                fields=["name"],
+                name="hashtag_name_trgm_idx",
+                opclasses=["gin_trgm_ops"]
+            )
+        ]
 
 class TestlarHashtag(models.Model):
     test = models.ForeignKey(Testlar, on_delete=models.CASCADE)
@@ -59,4 +66,16 @@ class Variantlar(models.Model):
     text = models.TextField(null=True)
     is_true=models.BooleanField(null=True)
 
+class Natijalar(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    test = models.ForeignKey(Testlar, on_delete=models.CASCADE)
+    sum_son = models.IntegerField(default=0)
+    true_son = models.IntegerField(default=0)
+    false_son = models.IntegerField(default=0)
+    answer = models.JSONField(null=True)
+    isfinish = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+# class NatijaAnswer(models.Models):
+#     natija = models.ForeignKey(Natijalar, on_delete=models.CASCADE)
 

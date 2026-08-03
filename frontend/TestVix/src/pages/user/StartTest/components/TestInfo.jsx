@@ -8,7 +8,7 @@ const TestInfo = ({ test }) => {
         <div className="test-main-info">
           <div className="test-badge-row">
             <span className="subject-badge">{test.fan}</span>
-            <span className="id-badge">ID: {test.id}</span>
+            <span className="id-badge">ID: {test.test_id}</span>
             <span className={`visibility-badge ${test.ispublic ? 'Public' : 'Private'}`}>
               <i className={`bi ${test.ispublic ? 'bi-globe' : 'bi-lock'}`}></i>
               {test.ispublic ? 'Public' : 'Private'}
@@ -17,7 +17,7 @@ const TestInfo = ({ test }) => {
           <h1 className="test-title">{test.nom}</h1>
           <p className="test-description">{test.tavsif}</p>
         </div>
-        
+
         <div className="test-footer-stats">
           <div className="stat-group">
             <div className="stat-item">

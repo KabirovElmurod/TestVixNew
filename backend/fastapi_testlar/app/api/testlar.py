@@ -2,21 +2,23 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from ...app.crud.func import verify_hash_url
+from ...app.crud.func import verify_hash_url, verify_one_hash
 
 from ...app.session import get_db
-from ...app.schemas.testlar import TestlarCreate, TestlarDelete, TestlarUpdate, TestlarRead
+from ...app.schemas.testlar import TestlarCreate, TestlarDelete, TestlarUpdate, TestlarRead, GetPublicTestlarRequest, SearchTestRequest
 from ...app.crud.testlar import (
     create_testlar,
+    create_test_with_json,
     get_testlar_by_id,
-    get_testlar_by_test_id,
+    get_test_by_test_id,
     get_testlar_by_test_code,
     get_testlar_by_test_key,
     get_all_testlar,
     get_testlar_by_user_id,
     get_public_testlar,
     update_test,
-    delete_testlar
+    delete_testlar,
+    search_testlar
 )
 from ...app.core.security import get_current_user
 from ...app.wrong import wrong
@@ -36,18 +38,6 @@ async def create_testlar_endpoint(
     if current_user.get('status') == False:
         return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
     
-    # existing_test_id = await get_testlar_by_test_id(db, testlar.test_id)
-    # if existing_test_id:
-    #     return wrong("Bu test_id allaqachon mavjud", status=False)
-    
-    # existing_test_code = await get_testlar_by_test_code(db, testlar.test_code)
-    # if existing_test_code:
-    #     return wrong("Bu test_code allaqachon mavjud", status=False)
-    
-    # existing_test_key = await get_testlar_by_test_key(db, testlar.test_key)
-    # if existing_test_key:
-    #     return wrong("Bu test_key allaqachon mavjud", status=False)
-    
     return await create_testlar(db, testlar, current_user.get('id'))
 
 
@@ -64,14 +54,28 @@ async def get_all_testlar_endpoint(
     return await get_all_testlar(db, skip, limit)
 
 
-@router.get("/public", response_model=List[TestlarRead])
+@router.post("/testlar")
 async def get_public_testlar_endpoint(
-    skip: int = 0,
-    limit: int = 100,
-    db: AsyncSession = Depends(get_db)
+    data: GetPublicTestlarRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    return await get_public_testlar(db, skip, limit)
+    limit = 6
+    if current_user.get('status') == False:
+        return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
+    
+    return await get_public_testlar(db, data.last_score, limit)
 
+@router.post('/create_test_with_json')
+async def create_test_with_json_endpoint(
+    testlar: TestlarCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    if current_user.get('status') == False:
+        return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
+    
+    return await create_test_with_json(db, testlar, current_user.get('id'))
 
 @router.get("/get_test_by_user_id")
 async def get_user_testlar_endpoint(
@@ -139,3 +143,33 @@ async def delete_testlar_endpoint(
     if deleted == False:
         return {"message": "Bunday test topilmadi yoki sizga tegishli emas", "status": False}
     return {"message": "Test muvaffaqiyatli o'chirildi", "status": True}
+
+@router.post('/get_show_test')
+async def  get_show_test(
+    id:int,
+    test_id : int|str,
+    hash_url : str,
+    
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    
+    if current_user.get('status') == False:
+        return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user':False}
+    
+    if not verify_hash_url(id, test_id, hash_url):
+        return {"message": "Bunday test mavjud emas", "status": False}
+
+    return await get_test_by_test_id(db, test_id)
+
+@router.post('/search_test')
+async def search_test(
+    data: SearchTestRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    print('\n\n\n', data, '\n\n\n')
+    if current_user.get('status') == False:
+        return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user':False}
+    
+    return await search_testlar(db, data)
