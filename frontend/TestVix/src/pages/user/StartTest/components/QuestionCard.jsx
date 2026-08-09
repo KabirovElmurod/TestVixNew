@@ -5,13 +5,13 @@ import MathText from '../../../../components/MathText';
 const QuestionCard = ({ question, index, selectedAnswer, onAnswerSelect }) => {
   const [svg, setSvg] = useState('');
   const [json, setJson] = useState(() => {
-    try {
-      const parsed = JSON.parse(question.svg_json);
-      return parsed.elements.length > 0 ? question.svg_json : null;
-    } catch (e) {
-      console.error('JSON parse error:', e);
-      return null;
-    }
+    // try {
+    const parsed = JSON.parse(question.svg_json);
+    return parsed.elements.length > 0 ? question.svg_json : null;
+    // } catch (e) {
+    //   console.error('JSON parse error:', e);
+    //   return null;
+    // }
   });
 
   const handleOptionClick = (optionIndex) => {

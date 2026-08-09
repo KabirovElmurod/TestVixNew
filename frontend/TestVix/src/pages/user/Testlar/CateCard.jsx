@@ -1,58 +1,83 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 // import { test_data } from './data'
 import TestCard from '../../../components/ui/TestCard'
 import { getPublicTest } from "../../../api/request_testlar";
+import { useSearchCon } from '../../../context/SearchContext';
 
-function CateCard({ handleCopyId, steps_class }) {
-    const [testlar, setTestlar] = useState([]);
-    const [lastScore, setLastScore] = useState(null);
+function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_score }) {
+    const { searchText, setSearchText, searchTest, setSearchTest } = useSearchCon()
+    const [testlar, setTestlar] = useState(tests);
+    const [lastScore, setLastScore] = useState(last_score);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-
+    const loading_ref = useRef(false);
+    const sliderRef = useRef(null);
     const fetchTests = useCallback(async (score) => {
-        console.log('fetchTests called with score:', score);
-        if (loading || !hasMore) return;
+        if (!hasMore || loading_ref.current) return;
 
-        setTimeout(() => {
-            setLoading(false);
-        }, 10000); // 10 soniya kutish
-        setInterval(() => {
-            setLoading(false);
-        }, 10000); // 1 soniya kutish
+        loading_ref.current = true;
         setLoading(true);
+
         try {
-            const res = await getPublicTest({ 'last_score': Number(score) });
-            console.log('res=>', res);
-            if (res.results && res.results.length > 0) {
-                setTestlar(prev => [...prev, ...res.results]);
-                setLastScore(res.last_score);
+            console.log('fetchTests called with score:', score);
+
+            const res = await getPublicTest({
+                last_score: Number(score)
+            });
+
+            console.log('res =>', res);
+
+            if (res.results?.length > 0) {
+                setTestlar(prev => [
+                    ...prev,
+                    ...res.results
+                ]);
+
+                if (res.last_score) {
+                    setLastScore(res.last_score);
+                } else {
+                    setHasMore(false);
+                    setLastScore(null);
+                }
             } else {
-                setHasMore(false); // Boshqa ma'lumot qolmadi
+                setHasMore(false);
+                setLastScore(null);
             }
+
         } catch (error) {
             console.error("Testlarni yuklashda xatolik:", error);
         } finally {
+            loading_ref.current = false;
             setLoading(false);
         }
-        setLoading(false);
+    }, [hasMore]);
 
-    }, [loading, hasMore]);
-
-    useEffect(() => {
-        // Komponent ilk marta yuklanganda testlarni olamiz
-        fetchTests(0);
-    }, []); // Bo'sh massiv faqat bir marta ishga tushishini ta'minlaydi
+    // useEffect(() => {
+    //     // Komponent ilk marta yuklanganda testlarni olamiz
+    //     console.log('searchTest=>', searchTest);
+    //     console.log('searchText=>', searchText.text);
+    //     if (searchTest && searchText.text) {
+    //         return
+    //     }
+    //     fetchTests(0);
+    // }, []); // Bo'sh massiv faqat bir marta ishga tushishini ta'minlaydi
 
     useEffect(() => {
         const handleScroll = () => {
             // Oynaning pastki qismiga 300px qolganda yangi ma'lumotlarni yuklash
             if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 300) {
-                if (hasMore && !loading && lastScore) {
+                if (hasMore && !loading && lastScore && loading_ref.current === false) {
                     // setLoading(true);
                     fetchTests(lastScore);
                 }
             }
         };
+
+        if (is_cate) {
+            return
+        }
+        console.log(category);
+
 
         window.addEventListener('scroll', handleScroll);
         return () => {
@@ -60,13 +85,41 @@ function CateCard({ handleCopyId, steps_class }) {
         }
     }, [loading, hasMore, lastScore, fetchTests]);
 
+    const handleHorizontalScroll = (e) => {
+        const el = e.currentTarget;
+
+        const remaining =
+            el.scrollWidth -
+            el.scrollLeft -
+            el.clientWidth;
+
+        if (
+            remaining <= 300 &&
+            hasMore &&
+            !loading_ref.current
+        ) {
+            fetchTests(lastScore);
+        }
+    };
+
     return (
         <div>
-            <div className={steps_class}>
-                {testlar?.map((test) => (
-                    <TestCard test={test} key={test.test_id} handleCopyId={handleCopyId}></TestCard>
-                ))}
-            </div>
+            {(
+                <div
+                    ref={sliderRef}
+                    className={steps_class}
+                    onScroll={handleHorizontalScroll}
+                >
+                    {testlar?.map(test => (
+                        <TestCard
+                            key={test.test_id}
+                            test={test}
+                            handleCopyId={handleCopyId}
+                        />
+                    ))}
+                </div>
+            )
+            }
             {
                 hasMore && loading ? (
                     <div className="spinner-border text-primary" role="status">
@@ -78,7 +131,7 @@ function CateCard({ handleCopyId, steps_class }) {
                         hasMore && !loading ? (null) : (
                             <div>
                                 <p>
-                                    <b>Testlar tugadi</b>
+                                    <b>Boshqa natija yo'q</b>
                                 </p>
                             </div>
 

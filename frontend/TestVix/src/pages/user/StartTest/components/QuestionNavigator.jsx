@@ -1,17 +1,17 @@
 import React from 'react';
 import Timer from './Timer';
 
-const QuestionNavigator = ({ 
-  questions, 
-  scrollToQuestion, 
-  activeQuestionId, 
-  isOpen, 
+const QuestionNavigator = ({
+  questions,
+  scrollToQuestion,
+  activeQuestionId,
+  isOpen,
   onClose,
   answeredQuestions,
   test,
   isTimerRunning,
   onTimeUp,
-  handleSubmitTest 
+  handleSubmitTest
 }) => {
   return (
     <div className={`question-navigator-container ${isOpen ? 'open' : ''}`} onClick={onClose}>
@@ -22,14 +22,14 @@ const QuestionNavigator = ({
             <i className="bi bi-x-lg"></i>
           </button>
         </div>
-        
+
         {isTimerRunning && (
           <div className="navigator-timer-section">
             <div className="timer-section">
-              <Timer 
-                duration={test.time} 
-                onTimeUp={onTimeUp} 
-                isRunning={isTimerRunning} 
+              <Timer
+                duration={50}
+                onTimeUp={onTimeUp}
+                isRunning={isTimerRunning}
               />
             </div>
             <button className="submit-btn" onClick={handleSubmitTest}>
@@ -49,9 +49,8 @@ const QuestionNavigator = ({
           {questions.map((q, index) => (
             <button
               key={q.id}
-              className={`navigator-button ${
-                activeQuestionId === q.id ? 'active' : ''
-              } ${answeredQuestions[q.id] ? 'answered' : ''}`}
+              className={`navigator-button ${activeQuestionId === q.id ? 'active' : ''
+                } ${answeredQuestions[q.id] ? 'answered' : ''}`}
               onClick={() => scrollToQuestion(q.id)}
             >
               {index + 1}

@@ -20,6 +20,7 @@ const ShowTest = lazy(() => import("./pages/user/ShowTest/ShowTest"));
 const Testlar = lazy(() => import("./pages/user/Testlar/Testlar"));
 const StartTest = lazy(() => import("./pages/user/StartTest/StartTest"))
 const FinishTest = lazy(() => import("./pages/user/FinishTest/FinishTest"))
+const SearchTest = lazy(() => import("./pages/user/SearchTest/SearchTest"))
 
 // Navbar yoki sidebar uchun
 import Navbar from "./components/Navbar";
@@ -70,7 +71,7 @@ function AppContent() {
                 <Route path="/testlar" element={<Testlar></Testlar>}></Route>
                 <Route path="/test/start/:id/:test_id/:hash_url" element={<StartTest></StartTest>}></Route>
                 <Route path="/test/finish/:id/:test_id/:hash_url" element={<FinishTest></FinishTest>}></Route>
-
+                <Route path="/search/:query" element={<SearchTest></SearchTest>}></Route>
                 <Route path='/logout' element={<Logout></Logout>}></Route>
 
 

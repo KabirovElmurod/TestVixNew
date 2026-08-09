@@ -6,6 +6,8 @@ export default function TestCard({ test, handleCopyId }) {
     const navigate = useNavigate()
     const { searchText, setSearchText } = useSearchCon()
     const handleSearchTag = (tag) => {
+        console.log('hash=>', tag);
+
         setSearchText(
             {
                 'text': tag,

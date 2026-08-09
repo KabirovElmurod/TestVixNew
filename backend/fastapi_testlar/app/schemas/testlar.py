@@ -53,3 +53,4 @@ class TestlarRead(BaseModel):
 class SearchTestRequest(BaseModel):
     text: str | int
     type: str 
+    last_score: float | None = None

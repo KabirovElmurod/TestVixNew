@@ -11,7 +11,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+from .app.redis.redis import get_redis
 
+@app.on_event("startup")
+async def startup_event():
+    redis = await get_redis()
+    await redis.clear_all_data()  # Clear all Redis data on startup
+    await redis.create_index()
+    await redis.create_search_index()  # Create search index for caching
 app.include_router(testlar_router)
 
 @app.get("/")

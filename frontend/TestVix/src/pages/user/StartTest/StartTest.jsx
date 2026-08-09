@@ -25,7 +25,7 @@ const StartTest = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [questions, setQuestions] = useState(null);
+  const [questions, setQuestions] = useState([]);
 
   const getSavollarData = async () => {
     let data = {
@@ -34,7 +34,7 @@ const StartTest = () => {
       hash_url: hash_url
     }
     const response = await getSavol(data);
-
+    console.log(response);
     if (response.user == false) {
       logout();
       navigate('/login');
@@ -176,13 +176,13 @@ const StartTest = () => {
     setMessage('');
   }, []);
 
-  if (!questions) {
-    console.log('sadwdw');
+  // if (!questions) {
+  //   console.log('sadwdw');
 
-    return (
-      <NoPage></NoPage>
-    )
-  }
+  //   return (
+  //     <NoPage></NoPage>
+  //   )
+  // }
   return (
     <div className="questions-page-wrapper">
       <Message

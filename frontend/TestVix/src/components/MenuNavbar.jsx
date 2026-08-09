@@ -4,11 +4,16 @@ import Logo from './ui/Logo'
 import ThemeButton from './ui/ThemeButton'
 import ProfileTheme from './ui/ProfileTheme'
 import { getSearchTest, profile_img } from '../api/request_testlar'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useSearchCon } from '../context/SearchContext'
+import { useNavigate } from 'react-router-dom'
 export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme, closeMobileMenu, setMobileMenuOpen, mobileMenuOpen }) {
+  const navigate = useNavigate()
+  let { pathname } = useLocation()
+  let path = pathname.split('/')[1]
+  let search_query = pathname.split('/')[2]
 
-  const { searchText, setSearchText } = useSearchCon()
+  const { searchText, setSearchText, searchTest, setSearchTest } = useSearchCon()
   const [search, setSearch] = useState('')
 
   const [openSmallSearch, setSmallSearch] = useState(false)
@@ -26,33 +31,55 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
 
   const handleSearchSubmit = async (value, e) => {
     if (e) e.preventDefault()
-    console.log(value);
+    console.log('search=>', value, searchText);
+
     let data = {}
-    if (typeof value === "number") {
-      data.text = value;
-      data.type = "number";
-    } else if (typeof value === "string" && value.length === 20 && !value.includes(' ')) {
-      data.text = value;
-      data.type = "key";
-    } else if (typeof value === "string") {
-      data.text = value;
-      data.type = "string";
+    if (!value || value === '') {
+      return
     }
-    console.log('data=>', data);
+    if (typeof value === "number") {
+      data['text'] = value;
+      data['type'] = "number";
+    } else if (typeof value === "string" && value.length === 20 && !value.includes(' ')) {
+      data['text'] = value;
+      data['type'] = "key";
+    } else if (typeof value === "string") {
+      data['text'] = value;
+      data['type'] = "string";
+    }
+    // console.log('data=>', data);
 
     let res = await getSearchTest(data)
     console.log(res);
+    setSearchTest(res)
+    navigate(`/search/${value}`)
 
   }
   useEffect(
     () => {
       setSearch(searchText.text)
-      handleSearchSubmit(searchText.text)
+      if (searchText.submit === 1) {
+        handleSearchSubmit(searchText.text)
+      }
     }, [searchText]
   )
 
+  useEffect(() => {
+    if (path == 'search' && search_query) {
+      setSearch(search_query)
+      setSearchText({ 'text': search_query, 'submit': 0 })
+      handleSearchSubmit(search_query)
+    }
+  }, [])
+
+
   const handleSearchChange = (value) => {
     setSearch(value)
+    setSearchText({ 'text': value, 'submit': 0 })
+    // console.log(value);
+    console.log("value=>", searchText);
+
+
   }
 
 
