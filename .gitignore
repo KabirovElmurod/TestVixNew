@@ -23,5 +23,6 @@ __pycache__
 *.suo
 *.ntvs*
 *.njsproj
+*.env
 *.sln
 *.sw?

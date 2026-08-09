@@ -13,6 +13,14 @@ import json
 
 
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv(r'D:\Projects\TestVix\TestVixNew\.env')
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+
 # @celery_app.task
 # def generate_hashtags(test_id: int, nom: str, fan: str, tavsif: str):
 #     asyncio.run(process_generate_hashtags(test_id, nom, fan, tavsif))
@@ -46,7 +54,7 @@ def generate_hashtags(test_id, nom, fan, tavsif):
 from groq import Groq
 import json, re
 
-client = Groq(api_key="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")
+client = Groq(api_key=api_key)
 
 async def ai_generate_hashtags(nom: str, fan: str, tavsif: str):
         
