@@ -4,7 +4,9 @@ from pydantic import BaseModel
 from typing import Optional
 
 class GetPublicTestlarRequest(BaseModel):
-    last_score: int 
+    last_score: int | None = None
+    last_id: int | None = None
+
 class TestlarCreate(BaseModel):
     nom: str
     fan: str
@@ -54,3 +56,5 @@ class SearchTestRequest(BaseModel):
     text: str | int
     type: str 
     last_score: float | None = None
+    last_id: int | None = None
+    last: float | None = None

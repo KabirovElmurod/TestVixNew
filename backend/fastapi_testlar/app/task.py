@@ -16,7 +16,7 @@ import json
 from dotenv import load_dotenv
 import os
 
-load_dotenv(r'D:\Projects\TestVix\TestVixNew\.env')
+# load_dotenv(r'D:\Projects\TestVix\TestVixNew\.env')
 
 api_key = os.getenv("OPENAI_API_KEY")
 
@@ -155,6 +155,7 @@ async def ai_generate_hashtags(nom: str, fan: str, tavsif: str):
     return data
 
 from ..app.models.testlar import Testlar, Hashtag
+from ..app.redis.redis import get_redis
 async def process_generate_hashtags(test_id: int, nom: str, fan:str, tavsif:str):
     AsyncSessionLocal = get_session()
     async with AsyncSessionLocal() as db:
@@ -220,4 +221,19 @@ ON CONFLICT DO NOTHING;
 
 
         await db.commit()
+        
+        # Get hashtag IDs from database
+        hashtag_names = [tag['name'] for tag in ai_hashtags['hashtags']]
+        hashtag_ids_result = await db.execute(
+            select(Hashtag.id).where(Hashtag.name.in_(hashtag_names))
+        )
+        hashtag_ids = [row[0] for row in hashtag_ids_result.all()]
+        
+        # Add test to Redis ZSET for each hashtag ID
+        redis = await get_redis()
+        await redis.cache_test_hashtags(test_id, hashtag_ids)
+        
+        # Index hashtags for fuzzy search
+        for hashtag_id, hashtag_name in zip(hashtag_ids, hashtag_names):
+            await redis.index_hashtag(hashtag_id, hashtag_name)
 

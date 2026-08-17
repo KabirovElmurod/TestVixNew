@@ -8,11 +8,15 @@ from ...app.crud.func import (
     created_to_human_time, 
     generate_hash_url
 )
+from rapidfuzz import fuzz
+# import fuzzy
 from sqlalchemy import distinct
 import json
 from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar, Hashtag
-from ..schemas.testlar import TestlarCreate, TestlarUpdate, SearchTestRequest
+from ..schemas.testlar import TestlarCreate, TestlarUpdate, SearchTestRequest, GetPublicTestlarRequest
 from ..redis.redis import get_redis
+from redis.commands.search.query import Query, NumericFilter
+
 from ...app.task import generate_hashtags
 # from ..app.crud. import created_to_human_time
 async def get_id_by_username(db: AsyncSession, username: str):
@@ -175,11 +179,14 @@ async def get_testlar_by_user_id(db: AsyncSession, user_id: int, skip: int = 0, 
     return results
     # return 
 
-async def get_public_testlar(db: AsyncSession, last_score: int = 0, limit: int = 100):
+async def get_public_testlar(db: AsyncSession, data: GetPublicTestlarRequest, limit: int = 100):
     # result = await db.execute(
     #     select(Testlar).where(Testlar.ispublic == True).offset(skip).limit(limit)
     # )
-    
+
+    print('\n\n\n', data, '\n\n\n')
+    last_score = data.last_score
+    last_id = data.last_id
     redis = await get_redis()
     # cached_tests = await redis.get(f"public_tests:{last_score}:{limit}")
     # if cached_tests:
@@ -213,6 +220,70 @@ async def get_public_testlar(db: AsyncSession, last_score: int = 0, limit: int =
                 'results': data,
                 'is_category': True
             })
+    if last_score:
+        query = (
+            Query('*')
+            .add_filter(NumericFilter("score", float("-inf"), last_score))
+            .paging(1, limit+1)
+            .sort_by('score', asc=False)
+            )
+    else:
+        query = (
+            Query('*')
+            .paging(0, limit)
+            .sort_by('score', asc=False)
+            )
+    cashe_result = await redis.ft('ind:public_tests').search(query)
+    # print('\n\n\n', cashe_result, '\n\n\n')
+    if cashe_result.docs and len(cashe_result.docs)> 0:
+        res = []
+        next_last_score = None
+        next_last_id = None
+        for test in cashe_result.docs:
+            next_last_score = test.score
+            next_last_id = test.id_test
+            res.append({
+                
+            'test_id': test.test_id ,
+            'id': test.id_test,
+            'nom': test.nom,
+            'fan': test.fan,
+            'tavsif': test.tavsif,
+            # 'key': test.test_key,
+            # 'ispublic': test.ispublic,
+            'istime': test.istime,
+            'time': test.time,
+            'score': test.score,
+            'created': test.created,
+            'hash_url': generate_hash_url(test.id, str(test.test_id)),
+            'savollar_soni': test.savollar_soni,
+            'hashtag_names': test.hashtag.split()
+        
+            })
+        cashe = {
+                'category': 'Boshqa testlar',
+                # 'is_category': False,
+                'results': res,
+                'last_score': int(next_last_score) if len(cashe_result.docs) == limit else None,
+                'last_id': int(next_last_id) if len(cashe_result.docs) == limit else None,
+                'is_category': False
+            }
+        if last_score:
+            print('\n\n\n', 'cashe public', '\n\n\n')
+            return cashe
+            
+        respon.append(cashe)
+            # if not last_score:
+        cates.append({
+            'cate': 'Boshqa testlar',
+            'is_category': False,
+        })
+        respon.append({'cates': cates})
+        # respon['Boshqa testlar'] = response
+        return respon
+
+    print('\n\n\n', 'dbdan olindi', '\n\n\n')
+    
     score = extract(
         'epoch',
         Testlar.created
@@ -242,13 +313,27 @@ async def get_public_testlar(db: AsyncSession, last_score: int = 0, limit: int =
             # .limit(limit)
         )
     # print('\n\n\n', 'last_score=>', last_score, '\n\n\n')
-    if last_score:
-        stmt = stmt.where(score < last_score)
+    # if last_score:
+    #     stmt = stmt.having(score < last_score)
+
+    if last_score is not None and last_id is not None:
+        stmt = stmt.having(
+            and_(
+                score >= 0.1,
+                or_(
+                    score < last_score,
+                    and_(
+                        score == last_score,
+                        Testlar.id < last_id
+                    )
+                )
+            )
+        )
 
     stmt = (
         stmt
         .group_by(Testlar.id)
-        .order_by(score.desc())
+        .order_by(score.desc() , Testlar.id.desc())
         .limit(limit)
     )
     
@@ -272,16 +357,52 @@ async def get_public_testlar(db: AsyncSession, last_score: int = 0, limit: int =
             'savollar_soni': savollar_soni,
             'hashtag_names': hashtag_name
         })
+        for hashtag in hashtag_name:
+            if await redis.exists(f'hashtag:{hashtag}'):
+                continue
+            await redis.hset(f'hashtag:{hashtag}', mapping={
+                'hashtag':hashtag
+            })
+        if await redis.exists(f'public_tests:{test.id}'):
+            continue
+        await redis.hset(
+            f'public_tests:{test.id}',
+            mapping={
+                'test_id': test.test_id ,
+                'id_test': test.id,
+                'nom': test.nom,
+                'fan': test.fan,
+                'tavsif': test.tavsif,
+                # 'key': test.test_key,
+                # 'ispublic': test.ispublic,
+                'istime': f'{test.istime}',
+                'time': test.time,
+                'score': int(test_score),
+                'created': created_to_human_time(test.created),
+                'hash_url': generate_hash_url(test.id, str(test.test_id)),
+                'savollar_soni': savollar_soni,
+                'hashtags': "|".join(hashtag_name),
+                'hashtag': " ".join(hashtag_name),
+            }
+        )
+        # await redis.hset(f'')
+
     next_last_score = None
+    next_last_id = None
+    print('\n\n\n', results, '\n\n\n')
+
     if not results:
         return {'results': [], 'last_score': None}
     if len(results) == limit:
         next_last_score = results[-1]['score'] if results else None
+        next_last_id = results[-1]['id'] if results else None
     # else:
     #     return {'results': [], 'last_score': None}
     response = {
         'results': results,
-        'last_score': next_last_score
+        'last_score': next_last_score,
+        'last_id': next_last_id
+    
     }
     await redis.set(f"public_tests:{last_score}:{limit}", json.dumps(response), ex=3600)  # Cache for 1 hour
     data = {
@@ -289,6 +410,7 @@ async def get_public_testlar(db: AsyncSession, last_score: int = 0, limit: int =
         # 'is_category': False,
         'results': results,
         'last_score': next_last_score,
+        'last_id': next_last_id,
         'is_category': False
     }
     if last_score:
@@ -306,9 +428,10 @@ async def get_public_testlar(db: AsyncSession, last_score: int = 0, limit: int =
 
 async def update_test(db: AsyncSession, test: TestlarUpdate):
     update_data = test.model_dump(exclude_unset=True)
+    print('\n\n\n', update_data, '\n\n\n')
     redis = await get_redis()
     result = await db.execute(
-        update(Testlar).where((Testlar.test_id == test.id) if test.id.isnumeric() else (Testlar.test_code == test.id) & (Testlar.test_key == test.key))
+        update(Testlar).where((Testlar.id == test.id)  & (Testlar.test_key == test.key))
         .values(
             nom=update_data.get('nom'),
             fan=update_data.get('fan'),
@@ -346,213 +469,425 @@ async def delete_testlar(db: AsyncSession, key: str, id: str | int, user_id: int
     return result.rowcount > 0
 
 async def search_testlar(db: AsyncSession, data, limit: int = 4):
+    
+    """Fallback to DB search when Redis hashtags are not available"""
     redis = await get_redis()
+    words = data.text.lower().split()
+
     last_score = None
-    if(data.last_score!=None):
-        last_score = float(data.last_score)
-    if data.type == "string":
-
-        words = data.text.lower().split()
+    if data.last_score:
+        last_score = data.last_score
+    last_id = None
+    if data.last_id:
+        last_id = data.last_id
+    if data.last:
+        last = data.last
+    else:
+        last = None
+    # for word in words:
+    search = [
+        f'@hashtag:%{word}%' for word in words
+    ]
+    search = ' | '.join(search)
+    print('\n\n\n', search, '\n\n\n')
+    if not last_score:
+        query = (
+            Query(search)
+            .paging(0 ,limit)
+            .sort_by('score', asc=False)
+        )
+    else:
+        query = (
+            Query(search)
+            .add_filter(NumericFilter("score", float("-inf"), last_score))
+            .paging(1 ,limit)
+            .sort_by('score', asc=False)
+        )
+    cashe_result = await redis.ft('ind:public_tests').search(query)
+    if cashe_result.docs and len(cashe_result.docs)>0:
+        results = []
+        next_last_score = None
+        next_last_id = None
+        for index, test in enumerate(cashe_result.docs):
+            next_last_score = test.score
+            next_last_id = test.id_test
+            last = None
+            if index == len(cashe_result.docs)-1:
+                hashtags = test.hashtag.split()
+                s = 0
+                print('\n\n\n', hashtags, '\n\n\n')
+                for hashtag in hashtags:
+                    for word in words:
+                        s += fuzz.ratio(word, hashtag)
+                last = s/100 * 2
+            results.append({
+                
+            'test_id': test.test_id ,
+            'id': test.id_test,
+            'nom': test.nom,
+            'fan': test.fan,
+            'tavsif': test.tavsif,
+            # 'key': test.test_key,
+            # 'ispublic': test.ispublic,
+            'istime': test.istime,
+            'time': test.time,
+            'score': test.score,
+            'created': test.created,
+            'hash_url': generate_hash_url(test.id, str(test.test_id)),
+            'savollar_soni': test.savollar_soni,
+            'hashtag_names': test.hashtag.split()
         
-        # Redis Stack search for cached results
-        last_score_str = str(last_score) if last_score is not None else "none"
-        result = await redis.search_cached_results(data.text.lower(), limit, last_score_str)
-        
-        # Check if result is valid and has expected structure
-        if result and isinstance(result, list) and len(result) > 0 and result[0] > 0:
-            docs = result[2:]
+            })
+        response = {
+                "results": results,
+                "last_score": float(results[-1]["score"]),
+                'last_id': results[-1]["id"] ,
+                'last': last if last else None
+            }
             
-            for i in range(0, len(docs), 2):
-                fields = docs[i + 1]
-                field_dict = dict(zip(fields[::2], fields[1::2]))
-                
-                # limit mosligini tekshirish
-                if int(field_dict["limit"]) != limit:
-                    continue
-                
-                # pagination tekshirish
-                if last_score is not None:
-                    if field_dict["last_score"] != str(last_score):
-                        continue
-                
-                cache = await redis.get(field_dict["cache_key"])
-                print('\n\n\n', "cashe=>", cache, '\n\n\n')
-                if cache:
-                    return cache
-        
-        # If no cache hit or lazy loading needed, proceed with DB query
-        
-        # 1. HASHTAG QIDIRISH (Database search)
-        hashtag_conditions = []
-        for word in words:
-            hashtag_conditions.append(
-                Hashtag.name.op("%")(word)
-            )
+        # respon['Boshqa testlar'] = response
+        print('\n\n\n', 'cashe_search', '\n\n\n')
 
-        hashtag_scores = func.greatest(
-            *[
-                func.similarity(Hashtag.name, word)
-                for word in words
-            ]
+        return response
+    
+    # 1. HASHTAG QIDIRISH (Database search)
+    print('\n\n\n', 'db search', '\n\n\n')
+    if last:
+        last_score = last
+    hashtag_conditions = []
+    for word in words:
+        hashtag_conditions.append(
+            Hashtag.name.op("%")(word)
         )
 
-        hashtag_query = (
-            select(
-                Hashtag.id,
-                hashtag_scores.label("score")
-            )
-            .where(
-                or_(*hashtag_conditions)
-            )
-            .subquery()
+    hashtag_scores = func.greatest(
+        *[
+            func.similarity(Hashtag.name, word)
+            for word in words
+        ]
+    )
+
+    hashtag_query = (
+        select(
+            Hashtag.id,
+            hashtag_scores.label("score")
         )
-
-
-        # 2. SAVOLLAR SONI
-        savollar_count = (
-            select(
-                Savollar.test_id,
-                func.count(Savollar.id).label("savollar_soni")
-            )
-            .group_by(Savollar.test_id)
-            .subquery()
+        .where(
+            or_(*hashtag_conditions)
         )
+        .subquery()
+    )
 
+    # 2. SAVOLLAR SONI
+    savollar_count = (
+        select(
+            Savollar.test_id,
+            func.count(Savollar.id).label("savollar_soni")
+        )
+        .group_by(Savollar.test_id)
+        .subquery()
+    )
 
-        SearchTestHashtag = aliased(TestlarHashtag)
-        TrueTestHashtag = aliased(TestlarHashtag)
-        TrueHashtag = aliased(Hashtag)
+    SearchTestHashtag = aliased(TestlarHashtag)
+    TrueTestHashtag = aliased(TestlarHashtag)
+    TrueHashtag = aliased(Hashtag)
 
+    # 3. TESTLARNI OLISH
+    score = func.sum(hashtag_query.c.score)
 
-        # 3. TESTLARNI OLISH
-        score = func.sum(hashtag_query.c.score)
-
-
-        stmt = (
-            select(
-                Testlar,
-
-                func.coalesce(
-                    savollar_count.c.savollar_soni,
-                    0
-                ).label("savollar_soni"),
-
-                func.array_agg(
-                    distinct(TrueHashtag.name)
-                ).label("hashtags"),
-
-                score.label("score")
+    stmt = (
+        select(
+            Testlar,
+            func.coalesce(
+                savollar_count.c.savollar_soni,
+                0
+            ).label("savollar_soni"),
+            func.array_agg(
+                distinct(TrueHashtag.name)
+            ).label("hashtags"),
+            score.label("score")
+        )
+        .join(
+            SearchTestHashtag,
+            SearchTestHashtag.test_id == Testlar.id
+        )
+        .join(
+            hashtag_query,
+            hashtag_query.c.id == SearchTestHashtag.hashtag_id
+        )
+        .outerjoin(
+            TrueTestHashtag,
+            and_(
+                TrueTestHashtag.test_id == Testlar.id,
+                TrueTestHashtag.tag.is_(True)
             )
+        )
+        .outerjoin(
+            TrueHashtag,
+            TrueHashtag.id == TrueTestHashtag.hashtag_id
+        )
+        .outerjoin(
+            savollar_count,
+            savollar_count.c.test_id == Testlar.id
+        )
+        .where(
+            Testlar.ispublic.is_(True)
+        )
+        .group_by(
+            Testlar.id,
+            savollar_count.c.savollar_soni
+        )
+        .having(
+            score >= 0.5
+        )
+        .order_by(
+            score.desc(),
+            Testlar.id.desc()
+        )
+        .limit(limit)
+    )
 
-            .join(
-                SearchTestHashtag,
-                SearchTestHashtag.test_id == Testlar.id
-            )
-
-            .join(
-                hashtag_query,
-                hashtag_query.c.id == SearchTestHashtag.hashtag_id
-            )
-
-
-            .outerjoin(
-                TrueTestHashtag,
-                and_(
-                    TrueTestHashtag.test_id == Testlar.id,
-                    TrueTestHashtag.tag.is_(True)
+    if last_score is not None and last_id is not None:
+        stmt = stmt.having(
+            and_(
+                score >= 0.5,
+                or_(
+                    score < last_score,
+                    and_(
+                        score == last_score,
+                        Testlar.id < last_id
+                    )
                 )
             )
-
-            .outerjoin(
-                TrueHashtag,
-                TrueHashtag.id == TrueTestHashtag.hashtag_id
-            )
-
-            .outerjoin(
-                savollar_count,
-                savollar_count.c.test_id == Testlar.id
-            )
-
-            .where(
-                Testlar.ispublic.is_(True)
-            )
-
-            .group_by(
-                Testlar.id,
-                savollar_count.c.savollar_soni
-            )
-
-            .having(
-                score >= 0.5
-            )
-
-            .order_by(
-                score.desc()
-            )
-            .limit(limit)
         )
 
-        if last_score is not None:
-            stmt = stmt.having(score <= last_score)
-        
-        result = await db.execute(stmt)
-        rows = result.all()
+    result = await db.execute(stmt)
+    rows = result.all()
 
-        results = []
-        # savollar_soni = 30
-        for test, savollar_soni, hashtag_name, test_score in rows: 
-            results.append({
+    results = []
+    for test, savollar_soni, hashtag_name, test_score in rows: 
+        results.append({
+            "test_id": test.test_id,
+            "id": test.id,
+            "nom": test.nom,
+            "fan": test.fan,
+            "tavsif": test.tavsif,
+            "istime": test.istime,
+            "time": test.time,
+            "created": created_to_human_time(test.created),
+            "hash_url": generate_hash_url(test.id, test.test_id),
+            "savollar_soni": savollar_soni,
+            "hashtag_names": hashtag_name,
+            "score": float(test_score)
+        })
+        if await redis.exists(f'public_tests:{test.id}'):
+            continue
+        await redis.hset(
+            f'public_tests:{test.id}',
+            mapping={
                 "test_id": test.test_id,
-                "id": test.id,
+                "id_test": test.id,
                 "nom": test.nom,
                 "fan": test.fan,
-                "tavsif": test.tavsif,
-                "istime": test.istime,
+                "tavsif": test.tavsif, 
+                "istime": f'{test.istime}',
                 "time": test.time,
                 "created": created_to_human_time(test.created),
+                'score' : int(test.created.timestamp()),
                 "hash_url": generate_hash_url(test.id, test.test_id),
                 "savollar_soni": savollar_soni,
-                "hashtag_names": hashtag_name,
-                "score": float(test_score)
-            })
-        respon = {
-            "results": results,
-            "last_score": float(results[-1]["score"]) if results else None
-        }
-        print('\n\n\n', "1=>", respon, '\n\n\n')
-    else:
-        # Handle other search types if needed
-        respon = {
-            "results": [],
-            "last_score": None
-        }
-        # print('\n\n\n', respon, '\n\n\n')
-        print('\n\n\n', "2=>", respon, '\n\n\n')
-
-
-    
-    # Cache the result with the original search query
-    # Use the full query as primary cache key
-    # Only cache if we have results
-    print('\n\n\n', "3=>", respon, '\n\n\n')
-
-    if respon.get("results"):
-        # Include last_score in cache key to handle pagination correctly
-        last_score_str = str(last_score) if last_score is not None else "none"
-        primary_cache_key = f"search:{data.text.lower()}:{limit}:{last_score_str}"
-        await redis.set(primary_cache_key, respon, ex=3600)  # Cache for 1 hour
-        
-        # Store metadata for Redis Stack search
-        await redis.client.hset(
-            f"cache:{primary_cache_key}",
-            mapping={
-                "query": data.text.lower(),
-                "cache_key": primary_cache_key,
-                "limit": limit,
-                "last_score": last_score_str,
+                "hashtags": "|".join(hashtag_name),
+                "hashtag": ' '.join(hashtag_name)
             }
         )
-    else:
-        print(f"Not caching empty result for: {data.text.lower()}")  # Debug
 
-    return respon
+    response = {
+        "results": results,
+        "last_score": float(results[-1]["score"]) if len(results)==limit else None,
+        'last_id': results[-1]["id"] if len(results)==limit else None
+    }
+    
+    # Cache the result
+    # await redis.set(cache_key, response, ex=3600)
+    
+    return response
+
+async def search_testlar_fallback(db: AsyncSession, data, limit: int, last_score, last_id, cache_key, redis):
+    """Fallback to DB search when Redis hashtags are not available"""
+    words = data.text.lower().split()
+    
+    # 1. HASHTAG QIDIRISH (Database search)
+    hashtag_conditions = []
+    for word in words:
+        hashtag_conditions.append(
+            Hashtag.name.op("%")(word)
+        )
+
+    hashtag_scores = func.greatest(
+        *[
+            func.similarity(Hashtag.name, word)
+            for word in words
+        ]
+    )
+
+    hashtag_query = (
+        select(
+            Hashtag.id,
+            hashtag_scores.label("score")
+        )
+        .where(
+            or_(*hashtag_conditions)
+        )
+        .subquery()
+    )
+
+    # 2. SAVOLLAR SONI
+    savollar_count = (
+        select(
+            Savollar.test_id,
+            func.count(Savollar.id).label("savollar_soni")
+        )
+        .group_by(Savollar.test_id)
+        .subquery()
+    )
+
+    SearchTestHashtag = aliased(TestlarHashtag)
+    TrueTestHashtag = aliased(TestlarHashtag)
+    TrueHashtag = aliased(Hashtag)
+
+    # 3. TESTLARNI OLISH
+    score = func.sum(hashtag_query.c.score)
+
+    stmt = (
+        select(
+            Testlar,
+            func.coalesce(
+                savollar_count.c.savollar_soni,
+                0
+            ).label("savollar_soni"),
+            func.array_agg(
+                distinct(TrueHashtag.name)
+            ).label("hashtags"),
+            score.label("score")
+        )
+        .join(
+            SearchTestHashtag,
+            SearchTestHashtag.test_id == Testlar.id
+        )
+        .join(
+            hashtag_query,
+            hashtag_query.c.id == SearchTestHashtag.hashtag_id
+        )
+        .outerjoin(
+            TrueTestHashtag,
+            and_(
+                TrueTestHashtag.test_id == Testlar.id,
+                TrueTestHashtag.tag.is_(True)
+            )
+        )
+        .outerjoin(
+            TrueHashtag,
+            TrueHashtag.id == TrueTestHashtag.hashtag_id
+        )
+        .outerjoin(
+            savollar_count,
+            savollar_count.c.test_id == Testlar.id
+        )
+        .where(
+            Testlar.ispublic.is_(True)
+        )
+        .group_by(
+            Testlar.id,
+            savollar_count.c.savollar_soni
+        )
+        .having(
+            score >= 0.5
+        )
+        .order_by(
+            score.desc(),
+            Testlar.id.desc()
+        )
+        .limit(limit)
+    )
+
+    if last_score is not None and last_id is not None:
+        stmt = stmt.having(
+            and_(
+                score >= 0.5,
+                or_(
+                    score < last_score,
+                    and_(
+                        score == last_score,
+                        Testlar.id < last_id
+                    )
+                )
+            )
+        )
+
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    results = []
+    for test, savollar_soni, hashtag_name, test_score in rows: 
+        results.append({
+            "test_id": test.test_id,
+            "id": test.id,
+            "nom": test.nom,
+            "fan": test.fan,
+            "tavsif": test.tavsif,
+            "istime": test.istime,
+            "time": test.time,
+            "created": created_to_human_time(test.created),
+            "hash_url": generate_hash_url(test.id, test.test_id),
+            "savollar_soni": savollar_soni,
+            "hashtag_names": hashtag_name,
+            "score": float(test_score)
+        })
+
+    response = {
+        "results": results,
+        "last_score": float(results[-1]["score"]) if len(results)==limit else None,
+        'last_id': results[-1]["id"] if len(results)==limit else None
+    }
+    
+    # Cache the result
+    await redis.set(cache_key, response, ex=3600)
+    
+    return response
+
+
+
+async def migrate_hashtags_to_redis(db: AsyncSession):
+    """
+    Migrate existing test-hashtag relationships to Redis ZSETs
+    This should be called once to populate Redis with existing data
+    """
+    redis = await get_redis()
+    
+    # Get all test-hashtag relationships with hashtag names
+    stmt = (
+        select(
+            TestlarHashtag.test_id,
+            Hashtag.id.label("hashtag_id"),
+            Hashtag.name
+        )
+        .join(Hashtag, Hashtag.id == TestlarHashtag.hashtag_id)
+        .where(TestlarHashtag.tag.is_(True))
+    )
+    
+    result = await db.execute(stmt)
+    test_hashtags = result.all()
+    
+    # Prepare data for migration
+    test_hashtags_data = [
+        (row.test_id, row.hashtag_id, row.name)
+        for row in test_hashtags
+    ]
+    
+    # Migrate to Redis
+    await redis.migrate_existing_hashtags(test_hashtags_data)
+    
+    return {
+        "message": f"Successfully migrated {len(test_hashtags_data)} test-hashtag relationships to Redis",
+        "count": len(test_hashtags_data)
+    }

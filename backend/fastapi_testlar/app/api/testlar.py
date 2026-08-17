@@ -64,7 +64,7 @@ async def get_public_testlar_endpoint(
     if current_user.get('status') == False:
         return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
     
-    return await get_public_testlar(db, data.last_score, limit)
+    return await get_public_testlar(db, data, limit)
 
 @router.post('/create_test_with_json')
 async def create_test_with_json_endpoint(

@@ -28,11 +28,13 @@ export default function SearchTest() {
     const [categor, setCategor] = useState([])
     const [testlar, setTestlar] = useState([]);
     const [lastScore, setLastScore] = useState(searchTest.last_score);
+    const [lastSearchScore, setLastSearchScore] = useState(searchTest.last);
+    const [lastId, setLastId] = useState(searchTest.last_id);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
 
 
-    const handleSearchSubmit = useCallback(async (last_score) => {
+    const handleSearchSubmit = useCallback(async (last_score, last_id) => {
         // if (e) e.preventDefault()
         let value = searchText.text
         // console.log('searchText=>', searchText);
@@ -40,10 +42,12 @@ export default function SearchTest() {
         if (loading) return;
         setLoading(true);
         let data = {}
+        data['last_id'] = last_id
         if (!value || value === '') {
             return
         }
         data['last_score'] = last_score
+        data['last'] = lastSearchScore
         if (typeof value === "number") {
             data['text'] = value;
             data['type'] = "number";
@@ -54,12 +58,14 @@ export default function SearchTest() {
             data['text'] = value;
             data['type'] = "string";
         }
-        console.log('data=>', data);
+        console.log('dataeeee=>', data);
 
         let res = await getSearchTest(data)
         console.log('res=>', res);
         if (res.last_score !== null) {
             setLastScore(res.last_score)
+            setLastId(res.last_id)
+            setLastSearchScore(res.last)
             setHasMore(true);
         }
         else {
@@ -88,6 +94,9 @@ export default function SearchTest() {
     // }, []); // Bo'sh massiv faqat bir marta ishga tushishini ta'minlaydi
     useEffect(() => {
         setLastScore(searchTest.last_score)
+        setLastId(searchTest.last_id)
+        console.log('last_id=>', searchTest.last_id);
+
         if (searchTest.last_score !== null) {
             setHasMore(true);
         }
@@ -115,8 +124,9 @@ export default function SearchTest() {
             lastScore
         ) {
             isFetching.current = true;
+            console.log('sssss=>', lastId);
 
-            handleSearchSubmit(lastScore).finally(() => {
+            handleSearchSubmit(lastScore, lastId).finally(() => {
                 isFetching.current = false;
             });
         }

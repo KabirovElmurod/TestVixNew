@@ -1,110 +1,84 @@
-import redis.asyncio as redis
 import json
 from typing import Optional, Any
+from redis.asyncio import Redis
+from redis.commands.search.field import (
+    NumericField,
+    TagField,
+    TextField,
+    VectorField
+)
 
-class RedisClient:
-    def __init__(self, host='redis', port=6379, db=0):
-        self.redis_pool = redis.ConnectionPool(host=host, port=port, db=db, decode_responses=True)
-        self.client = redis.Redis(connection_pool=self.redis_pool)
+from redis.commands.search.index_definition import (
+    IndexDefinition, 
+    IndexType
+)
+redis = Redis(
+    host='redis',
+    port=6379,
+    db=0,
+    decode_responses=True
+)
+
+# 'test_id': test.test_id ,
+#             'id': test.id,
+#             'nom': test.nom,
+#             'fan': test.fan,
+#             'tavsif': test.tavsif,
+#             # 'key': test.test_key,
+#             # 'ispublic': test.ispublic,
+#             'istime': test.istime,
+#             'time': test.time,
+#             'score': int(test_score),
+#             'created': created_to_human_time(test.created),
+#             'hash_url': generate_hash_url(test.id, str(test.test_id)),
+#             'savollar_soni': savollar_soni,
+#             'hashtag_names': hashtag_name
+
+async def create_index_public_test_redis():
+    indexs = await redis.execute_command('FT._LIST')
+    if 'ind:public_tests' in indexs:
+        return
+        # await redis.execute_command('FT.DROP INDEX ind:public_tests')
     
-    async def clear_all_data(self):
-        """Clear all data from Redis"""
-        try:
-            await self.client.flushdb()
-            print("All Redis data cleared on startup")
-        except Exception as e:
-            print(f"Error clearing Redis data: {e}")
-
-    async def get(self, key: str) -> Optional[Any]:
-        data = await self.client.get(key)
-        if data:
-            return json.loads(data)
-        return None
-
-    async def set(self, key: str, value: Any, ex: int = 3600): # 1 soatlik kesh
-        await self.client.set(key, json.dumps(value, default=str), ex=ex)
-
-    async def delete(self, key: str):
-        await self.client.delete(key)
-
-    async def create_index(self):
-        try:
-            await self.client.execute_command(
-                "FT.CREATE",
-                "hashtags",
-                "ON", "HASH",
-                "PREFIX", "1", "hashtag:",
-                "SCHEMA",
-                "name", "TEXT"
+    await redis.ft('ind:public_tests').create_index(
+        [
+            NumericField('test_id'),
+            NumericField('id_test'),
+            TextField('nom'),
+            TextField('fan'),
+            TextField('tavsif'),
+            TextField('hash_url'),
+            TagField('istime'),
+            NumericField('time'),
+            NumericField('score'),
+            NumericField('savollar_soni'),
+            TextField('created'),
+            NumericField('cashe_created'),
+            TagField('hashtags', separator="|"),
+            TextField('hashtag')
+        ],
+        definition=IndexDefinition(
+            prefix=['public_tests:'], 
+            index_type=IndexType.HASH
             )
-        except Exception as e:
-            if "Index already exists" not in str(e):
-                raise
+    )
 
+async def create_index_hashtag_redis():
+    indexs = await redis.execute_command('FT._LIST')
+    if 'ind:public_tests' in indexs:
+        return
 
-    async def search_hashtag(self, text: str, limit: int = 10):
-        return await self.client.execute_command(
-            "FT.SEARCH",
-            "hashtags",
-            text,
-            "LIMIT", "0", str(limit)
+    await redis.ft('ind:hashtags').create_index(
+        [
+            TextField('hashtag')
+        ],
+        definition = IndexDefinition(
+            prefix=['hashtag:'],
+            index_type=IndexType.HASH
         )
-    
-    async def create_search_index(self):
-        """Create search index for test results caching"""
-        try:
-            await self.client.execute_command(
-                "FT.CREATE",
-                "test_search",
-                "ON", "HASH",
-                "PREFIX", "1", "cache:",
-                "SCHEMA",
-                "query", "TEXT",
-                "cache_key", "TAG",
-                "limit", "NUMERIC",
-                "last_score", "TAG"
-            )
-        except Exception as e:
-            if "Index already exists" not in str(e):
-                raise
-    
-    async def search_cached_results(self, query: str, limit: int, last_score: str = "none"):
-        """Search cached test results using Redis Stack search"""
-        try:
-            # Use field-based search with @query:, exact limit match, and last_score
-            # For TAG fields, use exact match
-            search_query = f'@query:"{query}" @limit:{limit} @last_score:{last_score}'
-            result = await self.client.execute_command(
-                "FT.SEARCH",
-                "test_search",
-                search_query,
-                "LIMIT", "0", "10"
-            )
-            # Ensure result is a list before returning
-            if result is not None and not isinstance(result, list):
-                return None
-            return result
-        except Exception as e:
-            # If index doesn't exist, try to create it
-            if "Unknown Index name" in str(e):
-                await self.create_search_index()
-                return await self.search_cached_results(query, limit, last_score)
-            return None
-    
-    async def scan_keys(self, pattern: str, count: int = 100):
-        """Scan keys safely instead of KEYS command"""
-        keys = []
-        async for key in self.client.scan_iter(match=pattern, count=count):
-            keys.append(key)
-        return keys
-    
-    async def delete_by_pattern(self, pattern: str):
-        """Delete keys by pattern using SCAN"""
-        keys = await self.scan_keys(pattern)
-        if keys:
-            await self.client.delete(*keys)
+    )
 
-redis_client = RedisClient()
+    
 
 async def get_redis():
-    return redis_client
+    return redis

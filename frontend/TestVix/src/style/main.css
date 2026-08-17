@@ -3409,6 +3409,10 @@ math-field {
   scroll-snap-type: x mandatory;
   overflow-x: auto;
   scroll-behavior: smooth;
+  align-items: center;
+}
+.testlar .categors-div .steps-flex .loading_div {
+  padding: 10px 100px;
 }
 .testlar .categors-div .steps-flex .test-card {
   scroll-snap-align: start;

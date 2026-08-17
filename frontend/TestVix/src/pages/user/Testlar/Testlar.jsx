@@ -126,7 +126,7 @@ export default function Testlar() {
                             </div>
                             {
 
-                                <CateCard key={`cate-${inx}`} handleCopyId={handleCopyId} steps_class={item.is_category ? 'steps-flex' : 'steps-grid'} tests={item.is_category ? item.results.results : item.results} category={item.category} is_cate={item.is_category} last_score={item.is_category ? item.results.last_score : item.last_score} ></CateCard>
+                                <CateCard key={`cate-${inx}`} handleCopyId={handleCopyId} steps_class={item.is_category ? 'steps-flex' : 'steps-grid'} tests={item.is_category ? item.results.results : item.results} category={item.category} is_cate={item.is_category} last_score={item.is_category ? item.results.last_score : item.last_score} last_id={item.is_category ? item.results.last_id : item.last_id}></CateCard>
                                 // test_cate?.map((cate, index) => (
                                 //     item.cate === cate.category ? (
                                 //     ) : null

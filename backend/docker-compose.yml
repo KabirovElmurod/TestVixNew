@@ -22,6 +22,8 @@ services:
       - "8014:8001"
     volumes:
       - redisdata:/data
+    env_file:
+      - .env
 
   account:
     build: ./fastapi_account
@@ -40,6 +42,8 @@ services:
       - "8002:8000"
     depends_on:
       - redis
+    env_file:
+      - .env
 
   savollar:
     build: ./fastapi_savollar
@@ -75,6 +79,14 @@ services:
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+    env_file:
+      - .env
+  
+  # app:
+  #   build: .
+  #   env_file: .env
+    # ports:
+    #   - "8000:8000"
   # django:
   #   build: ./django_main
   #   ports:

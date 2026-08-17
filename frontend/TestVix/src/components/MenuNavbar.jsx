@@ -29,11 +29,15 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
     setSmallSearch(true)
   }
 
-  const handleSearchSubmit = async (value, e) => {
-    if (e) e.preventDefault()
+  const handleSearchSubmit = async (value, last_id, e) => {
+    if (e) {
+      e.preventDefault()
+      setSearchTest({})
+    }
     console.log('search=>', value, searchText);
 
     let data = {}
+    data['last_id'] = last_id
     if (!value || value === '') {
       return
     }
@@ -59,16 +63,18 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
     () => {
       setSearch(searchText.text)
       if (searchText.submit === 1) {
-        handleSearchSubmit(searchText.text)
+        handleSearchSubmit(searchText.text, null)
       }
     }, [searchText]
   )
 
   useEffect(() => {
     if (path == 'search' && search_query) {
-      setSearch(search_query)
-      setSearchText({ 'text': search_query, 'submit': 0 })
-      handleSearchSubmit(search_query)
+      let s = search_query.split('%20').join(' ')
+      console.log(s);
+      setSearch(s)
+      setSearchText({ 'text': s, 'submit': 0 })
+      handleSearchSubmit(s, null)
     }
   }, [])
 
@@ -87,7 +93,7 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
     <div className='menu-cont-div'>
       {
         openSmallSearch ? (
-          <form className='input-div' onSubmit={(e) => handleSearchSubmit(search, e)}>
+          <form className='input-div' onSubmit={(e) => handleSearchSubmit(search, null, e)}>
             <button className='exit-search-input-btn' type='button' onClick={() => setSmallSearch(false)}>
               <i className='bi bi-arrow-left-short'></i>
             </button>
@@ -105,7 +111,7 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
                 <Hamburger setMobileMenuOpen={setMobileMenuOpen} mobileMenuOpen={mobileMenuOpen}></Hamburger>
                 <Logo closeMobileMenu={closeMobileMenu} />
               </div>
-              <form className='input-div' onSubmit={(e) => handleSearchSubmit(search, e)}>
+              <form className='input-div' onSubmit={(e) => handleSearchSubmit(search, null, e)}>
                 <input type="text" placeholder="Qidirish" className="search-input" value={search} onChange={(e) => handleSearchChange(e.target.value)}
                 // value={search} onChange={(e) => setSearch(e.target.value)} />
                 />
