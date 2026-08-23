@@ -65,7 +65,7 @@ async def create_index_public_test_redis():
 
 async def create_index_hashtag_redis():
     indexs = await redis.execute_command('FT._LIST')
-    if 'ind:hashtags' in indexs:
+    if 'ind:public_tests' in indexs:
         return
 
     await redis.ft('ind:hashtags').create_index(

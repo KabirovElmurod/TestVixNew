@@ -49,7 +49,11 @@ async def login(
     response = JSONResponse(
         content={
             "message": "Muvaffaqiyatli kirdingiz",
-            "status": True
+            "status": True,
+            'user': {
+                'username':user.username,
+                'nickname':user.nickname
+            }
         }
     )
 
@@ -91,7 +95,11 @@ async def register(data: RegisterSchema, db: AsyncSession = Depends(get_db)):
     response = JSONResponse(
         content={
             "message": "Muvaffaqiyatli ro'yxatdan o'tdingiz",
-            "status": True
+            "status": True,
+            'user': {
+                    'username':data.username,
+                    'nickname':data.nickname
+                }
         }
     )
 

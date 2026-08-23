@@ -2,39 +2,39 @@ import React from 'react';
 
 const ResultCard = ({ results, test, onRetry, onBackToHome, onBackToTest }) => {
   // const { correctCount, totalQuestions, percentage, isPassed } = results;
-  let percentage = (results.true_son / results.sum_son * 100).toFixed(0)
-  let isPassed = true
-  if (percentage < 60) {
-    isPassed = false
-  }
-  let correctCount = results.true_son
-  let totalQuestions = results.sum_son
+  // let percentage = (results.true_son / results.sum_son * 100).toFixed(0)
+  // let isPassed = true
+  // if (percentage < 60) {
+  //   isPassed = false
+  // }
+  // let correctCount = results.true_son
+  // let totalQuestions = results.sum_son
   return (
     <div className="result-card">
       <div className="result-header">
-        <div className={`result-icon ${isPassed ? 'passed' : 'failed'}`}>
-          <i className={`bi ${isPassed ? 'bi-trophy-fill' : 'bi-x-circle-fill'}`}></i>
+        <div className={`result-icon ${results.isPassed ? 'passed' : 'failed'}`}>
+          <i className={`bi ${results.isPassed ? 'bi-trophy-fill' : 'bi-x-circle-fill'}`}></i>
         </div>
         <h1 className="result-title">
-          {isPassed ? 'Test muvaffaqiyatli yakunlandi!' : 'Test yakunlandi'}
+          {results.isPassed ? 'Test muvaffaqiyatli yakunlandi!' : 'Test yakunlandi'}
         </h1>
         <p className="test-name">{test.nom}</p>
       </div>
 
       <div className="result-stats">
         <div className="stat-item">
-          <div className="stat-value">{results.true_son}</div>
+          <div className="stat-value">{results.correctCount}</div>
           <div className="stat-label">To'g'ri javoblar</div>
         </div>
         <div className="stat-divider"></div>
         <div className="stat-item">
-          <div className="stat-value">{results.sum_son}</div>
+          <div className="stat-value">{results.totalQuestions}</div>
           <div className="stat-label">Jami savollar</div>
         </div>
         <div className="stat-divider"></div>
         <div className="stat-item">
-          <div className={`stat-value ${isPassed ? 'text-green' : 'text-red'}`}>
-            {percentage}%
+          <div className={`stat-value ${results.isPassed ? 'text-green' : 'text-red'}`}>
+            {results.percentage}%
           </div>
           <div className="stat-label">Natija</div>
         </div>
@@ -43,8 +43,8 @@ const ResultCard = ({ results, test, onRetry, onBackToHome, onBackToTest }) => {
       <div className="progress-section">
         <div className="progress-bar">
           <div
-            className={`progress-fill ${isPassed ? 'passed' : 'failed'}`}
-            style={{ width: `${percentage}%` }}
+            className={`progress-fill ${results.isPassed ? 'passed' : 'failed'}`}
+            style={{ width: `${results.percentage}%` }}
           ></div>
         </div>
         {/* <div className="progress-label">
@@ -57,11 +57,11 @@ const ResultCard = ({ results, test, onRetry, onBackToHome, onBackToTest }) => {
         <div className="details-grid">
           <div className="detail-item correct">
             <i className="bi bi-check-circle-fill"></i>
-            <span>To'g'ri: {correctCount}</span>
+            <span>To'g'ri: {results.correctCount}</span>
           </div>
           <div className="detail-item incorrect">
             <i className="bi bi-x-circle-fill"></i>
-            <span>Noto'g'ri: {totalQuestions - correctCount}</span>
+            <span>Noto'g'ri: {results.totalQuestions - results.correctCount}</span>
           </div>
         </div>
       </div>

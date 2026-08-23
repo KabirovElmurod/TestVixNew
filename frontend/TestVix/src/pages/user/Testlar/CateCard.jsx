@@ -14,6 +14,7 @@ function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_sc
     const [hasMore, setHasMore] = useState(true);
     const loading_ref = useRef(false);
     const sliderRef = useRef(null);
+
     const fetchTests = useCallback(async (score, lst_id) => {
         if (!hasMore || loading_ref.current) return;
 
@@ -21,14 +22,13 @@ function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_sc
         setLoading(true);
 
         try {
-            console.log('fetchTests called with score:', score);
             let data = {}
             let value = categor
-            data['last_id'] = last_id
+            data['last_id'] = lst_id
             if (!value || value === '') {
                 return
             }
-            data['last_score'] = last_score
+            data['last_score'] = score
             data['text'] = value;
             if (typeof value === "number") {
                 data['type'] = "number";
@@ -39,7 +39,7 @@ function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_sc
             }
             const res = await getSearchTest(data);
 
-            console.log('res =>', res);
+            // console.log('res =>', res);
 
             if (res.results?.length > 0) {
                 setTestlar(prev => [
@@ -68,15 +68,11 @@ function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_sc
         }
     }, [hasMore]);
 
-    const fetchTests_ver = useCallback(async (score) => {
-        console.log('fetchTests called with score:', score);
+    const fetchTests_ver = useCallback(async (score, lstid) => {
         if (loading || !hasMore) return;
-
-
         setLoading(true);
         try {
-            const res = await getPublicTest({ 'last_score': Number(score), 'last_id': lastId });
-            console.log('res=>', res);
+            const res = await getPublicTest({ 'last_score': Number(score), 'last_id': lstid });
             if (res.results.length > 0) {
                 setTestlar(prev => [
                     ...prev,
@@ -87,7 +83,8 @@ function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_sc
                     setLastScore(false)
                 }
                 // setTestlar(prev => [...prev, ...res.results]);
-                // setLastScore(res.last_score);
+                setLastScore(res.last_score);
+                setLastId(res.last_id);
             } else {
                 setHasMore(false); // Boshqa ma'lumot qolmadi
             }
@@ -99,16 +96,6 @@ function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_sc
         // setLoading(false);
 
     }, [loading, hasMore]);
-
-    // useEffect(() => {
-    //     // Komponent ilk marta yuklanganda testlarni olamiz
-    //     console.log('searchTest=>', searchTest);
-    //     console.log('searchText=>', searchText.text);
-    //     if (searchTest && searchText.text) {
-    //         return
-    //     }
-    //     fetchTests(0);
-    // }, []); // Bo'sh massiv faqat bir marta ishga tushishini ta'minlaydi
 
     useEffect(() => {
         const handleScroll = () => {
@@ -124,7 +111,6 @@ function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_sc
         if (is_cate) {
             return
         }
-        console.log('sa=>', category);
 
 
         window.addEventListener('scroll', handleScroll);
@@ -146,7 +132,7 @@ function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_sc
             hasMore &&
             !loading_ref.current
         ) {
-            // setLoading(true)
+
             fetchTests(lastScore, lastId);
         }
     };

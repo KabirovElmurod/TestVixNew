@@ -14,6 +14,7 @@ class TestlarCreate(BaseModel):
     ispublic: bool = False
     istime: bool = False
     time: Optional[int] = None
+    svg_json: dict|list = None
     savollar: list[dict] = None
     # user_id: int
     # test_id: str

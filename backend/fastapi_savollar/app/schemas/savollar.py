@@ -15,6 +15,7 @@ class SavollarCreate(BaseModel):
 
 class GetSavol(BaseModel):
     id:int
+    last_id: int | str = None
     test_id: int | str
     hash_url: str
 

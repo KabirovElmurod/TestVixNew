@@ -15,10 +15,10 @@ import json
 
 from dotenv import load_dotenv
 import os
-
+from ..app.secret import OPENAI_API_KEY
 # load_dotenv(r'D:\Projects\TestVix\TestVixNew\.env')
 
-api_key = os.getenv("OPENAI_API_KEY")
+api_key = OPENAI_API_KEY
 
 
 # @celery_app.task
@@ -65,7 +65,7 @@ async def ai_generate_hashtags(nom: str, fan: str, tavsif: str):
     # fan = "Fizika"
     # tavsif = "Bu test abituryentlar uchun mo‘ljallangan. Bilimlarni sinab ko'rishlari mumkin, bu yerda oddiy Nyuton qonuni va oddiy masalalar bor."
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-20b",
         messages=[
             {
         "role": "system",
@@ -169,9 +169,20 @@ async def process_generate_hashtags(test_id: int, nom: str, fan:str, tavsif:str)
 
         # ai_hashtags = json.loads(ai_hashtags)
         # ai_hashtags = json.decoder.JSONDecoder().decode(json.dumps(ai_hashtags))
+        hashtag = []
         print('\n\n\n', ai_hashtags, '\n\n\n')
         for tag in ai_hashtags['hashtags']:
             tag['tag'] = bool(tag['tag'])  # Convert to boolean
+            if bool(tag['tag']):
+                hashtag.append(tag['name'])
+        redis = await get_redis()
+        await redis.hset(
+            f'public_tests:{test_id}',
+            mapping={
+                'hashtags': '|'.join(hashtag),
+                'hashtag': ' '.join(hashtag)
+            }
+        )
         sql = text(
 
 """
@@ -223,17 +234,17 @@ ON CONFLICT DO NOTHING;
         await db.commit()
         
         # Get hashtag IDs from database
-        hashtag_names = [tag['name'] for tag in ai_hashtags['hashtags']]
-        hashtag_ids_result = await db.execute(
-            select(Hashtag.id).where(Hashtag.name.in_(hashtag_names))
-        )
-        hashtag_ids = [row[0] for row in hashtag_ids_result.all()]
+        # hashtag_names = [tag['name'] for tag in ai_hashtags['hashtags']]
+        # hashtag_ids_result = await db.execute(
+        #     select(Hashtag.id).where(Hashtag.name.in_(hashtag_names))
+        # )
+        # hashtag_ids = [row[0] for row in hashtag_ids_result.all()]
         
-        # Add test to Redis ZSET for each hashtag ID
-        redis = await get_redis()
-        await redis.cache_test_hashtags(test_id, hashtag_ids)
+        # # Add test to Redis ZSET for each hashtag ID
+        # redis = await get_redis()
+        # await redis.cache_test_hashtags(test_id, hashtag_ids)
         
-        # Index hashtags for fuzzy search
-        for hashtag_id, hashtag_name in zip(hashtag_ids, hashtag_names):
-            await redis.index_hashtag(hashtag_id, hashtag_name)
+        # # Index hashtags for fuzzy search
+        # for hashtag_id, hashtag_name in zip(hashtag_ids, hashtag_names):
+        #     await redis.index_hashtag(hashtag_id, hashtag_name)
 

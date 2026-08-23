@@ -16,7 +16,8 @@ export default function Login() {
     e.preventDefault();
     const res = await loginUser({ username, password });
     if (res.status) {
-      await login(true); 
+      await login(true);
+      localStorage.setItem('user', JSON.stringify(res.user))
       navigate('/');
     } else {
       setMessage(res.message);
@@ -39,25 +40,25 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label>Username</label>
-            <input 
-              placeholder="Username" 
-              onChange={e => setUsername(e.target.value)} 
+            <input
+              placeholder="Username"
+              onChange={e => setUsername(e.target.value)}
               required
             />
           </div>
           <div className="form-group">
             <label>Parol</label>
             <div style={{ position: 'relative', width: '100%' }}>
-              <input 
-                type={showPassword ? "text" : "password"} 
-                placeholder="••••••••" 
-                onChange={e => setPassword(e.target.value)} 
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                onChange={e => setPassword(e.target.value)}
                 required
                 style={{ width: '100%', paddingRight: '35px' }}
               />
-              <i 
-                  className={`eye-icon-style bi ${showPassword ? "bi-eye-fill" : "bi-eye-slash-fill"}`} 
-                  onClick={() => setShowPassword(!showPassword)}></i>
+              <i
+                className={`eye-icon-style bi ${showPassword ? "bi-eye-fill" : "bi-eye-slash-fill"}`}
+                onClick={() => setShowPassword(!showPassword)}></i>
             </div>
           </div>
           <button className="btn btn-primary w-full">Kirish</button>

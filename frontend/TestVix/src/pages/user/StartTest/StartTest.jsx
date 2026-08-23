@@ -26,14 +26,25 @@ const StartTest = () => {
   const [messageType, setMessageType] = useState('success');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [questions, setQuestions] = useState([]);
+  const [lastId, setLastId] = useState()
+  {
 
-  const getSavollarData = async () => {
+    console.log('aaaaaaaa')
+  }
+  const getSavollarData = async (last_id) => {
     let data = {
       id: Number(id),
       test_id: testID,
       hash_url: hash_url
     }
+    if (last_id) {
+      data['last_id'] = last_id
+    }
+    console.log(data);
+
     const response = await getSavol(data);
+    console.log('saaa');
+
     console.log(response);
     if (response.user == false) {
       logout();
@@ -44,8 +55,34 @@ const StartTest = () => {
       return
       // navigate('');
     }
-    localStorage.setItem('test_savol', JSON.stringify(response));
-    setQuestions(response);
+    let local_savol = localStorage.getItem('test_savol')
+    if (local_savol) {
+      local_savol = JSON.parse(local_savol);
+
+      const mavjud = new Set(local_savol.savollar.map(s => s.id));
+
+      local_savol.savollar.push(
+        ...response.savollar.filter(s => !mavjud.has(s.id))
+      );
+
+      local_savol.last_id = response.last_id;
+
+      localStorage.setItem("test_savol", JSON.stringify(local_savol));
+    }
+    else {
+      localStorage.setItem('test_savol', JSON.stringify(response));
+    }
+
+    console.log('savollar=>', local_savol);
+
+    setQuestions(prev => ([
+      ...prev,
+      ...response.savollar
+    ]));
+    setLastId(response.last_id)
+    if (response.last_id) {
+      await getSavollarData(response.last_id)
+    }
   };
 
   useEffect(() => {
@@ -66,7 +103,10 @@ const StartTest = () => {
       setAnsweredQuestions(JSON.parse(savedAnsweredQuestions));
     }
 
-    getSavollarData();
+    const gsd = async () => {
+      await getSavollarData();
+    }
+    gsd()
 
     // Auto-start timer immediately
     setIsTimerRunning(true);
@@ -80,13 +120,27 @@ const StartTest = () => {
     }
   };
 
-  const scrollToQuestion = (id) => {
+  // const scrollToQuestion = (id) => {
+  //   const element = questionRefs.current.get(`question-${id}`);
+  //   if (element) {
+  //     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  //     setIsNavOpen(false);
+  //   }
+  // };
+
+  const scrollToQuestion = useCallback((id) => {
     const element = questionRefs.current.get(`question-${id}`);
+
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+
       setIsNavOpen(false);
     }
-  };
+  }, []);
+
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -176,6 +230,8 @@ const StartTest = () => {
     setMessage('');
   }, []);
 
+  // console.log('dwwww=>', test?.time, test);
+
   // if (!questions) {
   //   console.log('sadwdw');
 
@@ -217,7 +273,7 @@ const StartTest = () => {
             </div>
 
             <div className="space-y-6">
-              {questions.map((question, index) => (
+              {questions?.map((question, index) => (
                 <div
                   className="question-item"
                   ref={(el) => setQuestionRef(`question-${question.id}`, el)}
@@ -235,19 +291,21 @@ const StartTest = () => {
           </>
         )}
       </div>
-
-      <QuestionNavigator
-        questions={questions}
-        scrollToQuestion={scrollToQuestion}
-        activeQuestionId={activeQuestionId}
-        isOpen={isNavOpen}
-        onClose={() => setIsNavOpen(false)}
-        answeredQuestions={answeredQuestions}
-        test={test}
-        isTimerRunning={isTimerRunning}
-        onTimeUp={handleTimeUp}
-        handleSubmitTest={handleSubmitTest}
-      />
+      {
+        test?.nom ?
+          <QuestionNavigator
+            questions={questions}
+            scrollToQuestion={scrollToQuestion}
+            activeQuestionId={activeQuestionId}
+            isOpen={isNavOpen}
+            onClose={() => setIsNavOpen(false)}
+            answeredQuestions={answeredQuestions}
+            test={test}
+            isTimerRunning={isTimerRunning}
+            onTimeUp={handleTimeUp}
+            handleSubmitTest={handleSubmitTest}
+          /> : null
+      }
 
       <FinishTestModal
         isOpen={showConfirmModal}

@@ -1,3 +1,4 @@
+from ...app.crud.func import generate_hash_url
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
@@ -62,12 +63,14 @@ async def get_savol(
     db:AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user)
 ): 
+    print('\n\n\n', data, '\n\n\n')
     if current_user.get('status') == False:
         return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
-    if not verify_hash_url(data.id,data.test_id, data.hash_url):
-        return {'message': 'Bunday test mavjud emas', 'status': False}
+    print(generate_hash_url(data.id, str(data.test_id)))
+    if not verify_hash_url(int(data.id), str(data.test_id), data.hash_url):
+        return {'message': 'Bunday test mavjud emasssssss', 'status': False}
 
-    return await get_savol_by_test_id(db, data.id)
+    return await get_savol_by_test_id(db, current_user.get('id'), data.id, data.last_id)
     
 
 @router.post("/update_savol")

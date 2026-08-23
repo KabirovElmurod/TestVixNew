@@ -1,5 +1,11 @@
+from operator import and_
+
+# from anyio import Condition
+
+# from numpy import sort
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete, update, insert, join
+from sqlalchemy import select, delete, update, insert, join, func
 from sqlalchemy.orm import selectinload
 
 from ...app.crud.func import (
@@ -15,6 +21,9 @@ from ...app.crud.func import (
 from ..models.savollar import Natijalar, Savollar, Variantlar
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from ..schemas.savollar import SavollarCreate, SavollarUpdate, GetSavollarRequest
+from ...app.redis.redis import get_redis
+import json
+import random
 # from ..app.crud. import created_to_human_time
 async def get_id_by_username(db: AsyncSession, username: str):
     result = await db.execute(select(Savollar.id).where(Savollar.username == username))
@@ -50,35 +59,180 @@ async def get_savollar_by_id(db: AsyncSession, savollar_id: int):
     return result.scalar_one_or_none()
 
 
-async def get_savol_by_test_id(db: AsyncSession, test_id: int):
-    result = await db.execute(
-        select(Savollar, Variantlar)
-        .join(Variantlar, Variantlar.savol_id == Savollar.id)
-        .where(Savollar.test_id == test_id)
-    )
+async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last_id:int = None, limit:int = 2):
+    redis = await get_redis()
+    # savollar_ids = await redis.zrange(f'test:{test_id}:savollar', 0,-1)
+    if not await redis.lrange(
+        f'user:{user_id}:test:{test_id}:savollar',
+        0,1
+    ):
+        ids = await redis.zrange(
+            f'test:{test_id}:savollar',
+            0,-1
+        )
+        if ids:
+            random.shuffle(ids)
+            key = f"user:{user_id}:test:{test_id}:savollar"
+            pipe = redis.pipeline()
+            pipe.rpush(key, *ids)
+            pipe.expire(key, 10)
+            await pipe.execute()
 
+            
+    key = f"user:{user_id}:test:{test_id}:savollar"
+    if last_id is None:
+        ids = await redis.lrange(key, 0, limit - 1)
+    else:
+        pos = await redis.lpos(key, str(last_id))
+
+        if pos is None:
+            ids = []
+        else:
+            ids = await redis.lrange(key, pos + 1, pos + limit)
+
+    # print('\n\n\n', 'ids=>', ids, '\n\n\n')
+    need_ids = []
+    savollar = []
+    if ids:
+        print('\n\n\n', ids, '\n\n\n')
+
+        for id in ids:
+
+            savol = await redis.get(f'savol:{id}')
+            if savol:
+                savol = json.loads(savol)
+                savollar.append(savol)
+            else:
+                need_ids.append(int(id))
+        if savollar and not need_ids:
+            print('\n\n\n', 'cashe', '\n\n\n')
+            return {
+                'savollar': savollar,
+                'last_id': savollar[-1]['id'] if len(savollar)==limit else None
+            }
+    print('\n\n\n', 'need=>', need_ids, '\n\n\n')
+    print('\n\n\n', 'sav=>', savollar, '\n\n\n')
+
+    
+    if not await redis.get(f'test:{test_id}:savollar:ready'):
+        result_id = await db.execute(
+            select(
+                Savollar.id
+            )
+            .where(Savollar.test_id == test_id)
+            .order_by(Savollar.id.asc())
+        )
+        ids = result_id.scalars().all()
+        if ids:
+            await redis.zadd(
+                f'test:{test_id}:savollar',
+                {
+                    str(i):i for i in ids
+                }
+            )
+            await redis.set(f"test:{test_id}:savollar:ready", 1, ex=3600)
+            await redis.rpush(
+                f"user:{user_id}:test:{test_id}:savollar",
+                *ids
+            )
+
+    
+    condition = Savollar.test_id == test_id
+
+    if last_id is not None:
+        # condition.append(Savollar.id>last_id)
+        condition = and_(
+            Savollar.test_id == test_id,
+            Savollar.id>last_id
+        )
+    
+    
+    result = (
+        select(
+            Savollar.id,
+            Savollar.test_id,
+            Savollar.text,
+            Savollar.svg_json,
+            func.json_agg(
+                func.json_build_object(
+                    "id", Variantlar.id,
+                    "text", Variantlar.text
+                )
+            ).label("variantlar")
+        )
+        .join(
+            Variantlar,
+            Variantlar.savol_id == Savollar.id
+        )
+        .where(Savollar.test_id == test_id)
+        
+        .group_by(
+            Savollar.id,
+            Savollar.test_id,
+            Savollar.text,
+            Savollar.svg_json
+        )
+        .order_by(Savollar.id.asc())
+        .limit(limit)
+    )
+    if need_ids:
+        result = result.where(
+            Savollar.id.in_(need_ids)
+        )
+    elif last_id:
+        result = result.where(Savollar.id > last_id if last_id else True)
+    result = await db.execute(result)
     rows = result.all()
 
-    savollar = {}
-
-    for savol, variant in rows:
-        if savol.id not in savollar:
-            savollar[savol.id] = {
-                "id": savol.id,
-                "test_id": savol.test_id,
-                'savol_hash': generate_hash_savol(savol.id, test_id),
-                "text": savol.text,
-                "svg_json": savol.svg_json,
-                "variantlar": []
+    # savollar = []
+    got_ids = []
+    for row in rows:
+        # print('sss=>', row)
+        # print('id=>', row.id)
+        if row.id not in got_ids:
+            savol_hash = generate_hash_savol(row.id, test_id)
+            new_savol = {
+                "id": row.id,
+                "test_id": row.test_id,
+                'savol_hash': savol_hash,
+                "text": row.text,
+                "svg_json": row.svg_json,
+                "variantlar": [
+                    {
+                    "id": v['id'],
+                    "text": v['text'],
+                    'v_hash': generate_hash_url(v['id'], savol_hash)
+                }
+                for v in row.variantlar
+                ]
             }
-
-        savollar[savol.id]["variantlar"].append({
-            "id": variant.id,
-            "text": variant.text,
-            'v_hash': generate_hash_url(variant.id, savollar[savol.id]['savol_hash'])
-        })
-
-    return list(savollar.values())
+            got_ids.append(row.id)
+            savollar.append(new_savol)
+            # for v in variant:
+            #     savollar[savol.id]["variantlar"].append({
+            #         "id": v.id,
+            #         "text": v.text,
+            #         'v_hash': generate_hash_url(v.id, savollar[savol.id]['savol_hash'])
+            #     })
+            await redis.set(f'savol:{row.id}', json.dumps(new_savol), ex = 10)
+            # await redis.zadd(f'test:{row.test_id}:savollar', {
+            #     str(row.id): row.id
+            # })
+        
+    if savollar:
+        res = {
+            'savollar':savollar,
+            'last_id': (savollar)[-1]['id'] if len(list(savollar))==limit else None
+        }
+        # print()
+        return res
+    # res['savollar':list(savollar.values())]
+    # res['']
+    return {
+            'last_id':None,
+            'savollar': []
+        } 
+    # list(savollar.values())
     # return result.scalar_one_or_none()
 
 

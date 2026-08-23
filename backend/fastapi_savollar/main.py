@@ -1,3 +1,5 @@
+from xml.etree.ElementInclude import include
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .app.api.savollar import router as savollar_router
@@ -11,7 +13,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+from .app.redis.redis import get_redis, create_index_public_test_redis, create_index_hashtag_redis
 
+@app.on_event("startup")
+async def startup_event():
+    redis = await get_redis()
+    await redis.flushdb()  
+    await create_index_public_test_redis()
+    await create_index_hashtag_redis()
 app.include_router(savollar_router)
 
 @app.get("/")

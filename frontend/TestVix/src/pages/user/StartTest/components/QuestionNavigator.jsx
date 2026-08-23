@@ -13,6 +13,8 @@ const QuestionNavigator = ({
   onTimeUp,
   handleSubmitTest
 }) => {
+  console.log('timer=>', test);
+
   return (
     <div className={`question-navigator-container ${isOpen ? 'open' : ''}`} onClick={onClose}>
       <div className="question-navigator" onClick={(e) => e.stopPropagation()}>
@@ -26,11 +28,24 @@ const QuestionNavigator = ({
         {isTimerRunning && (
           <div className="navigator-timer-section">
             <div className="timer-section">
-              <Timer
-                duration={50}
-                onTimeUp={onTimeUp}
-                isRunning={isTimerRunning}
-              />
+              {
+                test ? (
+                  <Timer
+                    // duration={13}
+                    duration={Number(test?.time)}
+                    onTimeUp={onTimeUp}
+                    isRunning={isTimerRunning}
+                  />
+                )
+                  :
+                  (
+                    <Timer
+                      duration={60}
+                      onTimeUp={onTimeUp}
+                      isRunning={isTimerRunning}
+                    />
+                  )
+              }
             </div>
             <button className="submit-btn" onClick={handleSubmitTest}>
               <i className="bi bi-check-circle-fill"></i>
@@ -62,4 +77,4 @@ const QuestionNavigator = ({
   );
 };
 
-export default QuestionNavigator;
+export default React.memo(QuestionNavigator);

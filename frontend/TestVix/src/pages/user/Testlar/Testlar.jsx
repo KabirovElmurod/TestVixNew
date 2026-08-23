@@ -43,10 +43,8 @@ export default function Testlar() {
         setLoading(true);
         try {
             const res = await getPublicTest({ 'last_score': Number(score) });
-            console.log('res=>', res);
             if (res.length > 0) {
                 setCategor(res.at(-1).cates)
-                console.log('res[-1]=>', res.at(-1));
                 setTestCate(
                     res
                 )
@@ -65,32 +63,8 @@ export default function Testlar() {
     }, [loading, hasMore]);
 
     useEffect(() => {
-        // Komponent ilk marta yuklanganda testlarni olamiz
-        console.log('searchTest=>', searchTest);
-        console.log('searchText=>', searchText.text);
-        // if (searchTest && searchText.text) {
-        //     return
-        // }
         fetchTests(0);
-    }, []); // Bo'sh massiv faqat bir marta ishga tushishini ta'minlaydi
-
-    // useEffect(() => {
-    //     const handleScroll = () => {
-    //         // Oynaning pastki qismiga 300px qolganda yangi ma'lumotlarni yuklash
-    //         if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 300) {
-    //             if (hasMore && !loading && lastScore) {
-    //                 // setLoading(true);
-    //                 fetchTests(lastScore);
-    //             }
-    //         }
-    //     };
-
-    //     window.addEventListener('scroll', handleScroll);
-    //     return () => {
-    //         window.removeEventListener('scroll', handleScroll);
-    //     }
-    // }, [loading, hasMore, lastScore, fetchTests]);
-
+    }, []);
 
     const handleCopyId = (id) => {
         navigator.clipboard.writeText(id);

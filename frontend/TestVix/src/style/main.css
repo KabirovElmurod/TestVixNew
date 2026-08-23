@@ -4290,6 +4290,14 @@ math-field {
   margin: 20px 0;
 }
 
+@media (max-width: 1250px) {
+  .show_test_cont {
+    flex-direction: column;
+  }
+  .show_test_cont .show_test_comments {
+    width: 100%;
+  }
+}
 @media (max-width: 992px) {
   .show_test_cont .team_star_div {
     grid-template-columns: 1fr;

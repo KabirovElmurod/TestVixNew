@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Message from '../../../components/ui/Message';
 import ResultCard from './components/ResultCard';
@@ -42,9 +42,9 @@ const FinishTest = () => {
     }
     if (test_savol) {
       test_savol = JSON.parse(test_savol);
-      console.log('test_savol=>', test_savol);
+      console.log('test_savol=>', test_savol.savollar);
 
-      setQuestions(test_savol);
+      setQuestions(test_savol.savollar);
     }
 
 
@@ -86,10 +86,38 @@ const FinishTest = () => {
     return () => observer.disconnect();
   }, [questions]);
 
+  // const calculateResults = useCallback(() => {
+
+  //   // if (!questions) return
+  //   const correctCount = questions.reduce((count, question) => {
+  //     const selectedOption = selectedAnswers[question.id];
+  //     if (selectedOption !== undefined && question.variantlar[selectedOption]?.is_true) {
+  //       return count + 1;
+  //     }
+  //     return count;
+  //   }, 0);
+
+  //   const totalQuestions = questions.length;
+  //   const percentage = totalQuestions > 0 ? ((correctCount / totalQuestions) * 100).toFixed(1) : 0;
+  //   const isPassed = percentage >= 60;
+
+  //   return {
+  //     correctCount,
+  //     totalQuestions,
+  //     percentage,
+  //     isPassed
+  //   };
+
+  // }, [questions])
+
   const calculateResults = () => {
+    console.log('ss');
+
     const correctCount = questions.reduce((count, question) => {
-      const selectedOption = selectedAnswers[question.id];
-      if (selectedOption !== undefined && question.variantlar[selectedOption]?.is_true) {
+      const selectedOption = testresult.answer[question.id];
+      console.log('ss=>', selectedOption);
+
+      if (selectedOption !== undefined && selectedOption?.is_true) {
         return count + 1;
       }
       return count;
@@ -141,7 +169,7 @@ const FinishTest = () => {
 
       <div className="finish-test-content">
         <ResultCard
-          results={testresult}
+          results={results}
           test={test}
           onRetry={handleRetry}
           onBackToHome={handleBackToHome}

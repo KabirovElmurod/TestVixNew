@@ -54,6 +54,7 @@ export default function Register() {
     // console.log('data_register', res);
     if (regRes.status) {
       await login(true);
+      localStorage.setItem('user', JSON.stringify(res.user))
       navigate('/');
     } else {
       navigate('/login');

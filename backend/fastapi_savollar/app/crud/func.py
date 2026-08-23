@@ -84,8 +84,11 @@ def generate_hash_url(test_id: int, test_code: str):
 
 def verify_hash_url(test_id: int | str, test_code: str, hash_value: str):
     key = 'awuduwhduahuhsuihwhauhdw87y7a8hudw78dhuah87'
+    
     message = f"{test_id}|{test_code}"
     expected_hash = hmac.new(key.encode(), message.encode(), hashlib.sha256).hexdigest()
+    print('\n\n\n', 'id=', test_id, 'test_code=', test_code, 'hash_value=', hash_value, 'expected=', expected_hash, '\n\n\n')
+
     return hmac.compare_digest(expected_hash, hash_value)
 
 
