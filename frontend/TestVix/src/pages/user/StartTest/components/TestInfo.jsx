@@ -1,5 +1,6 @@
 import React from 'react';
 import StarRating from './StarRating';
+import { human_time } from '../../../../lib/func';
 
 const TestInfo = ({ test }) => {
   return (
@@ -26,7 +27,7 @@ const TestInfo = ({ test }) => {
               </div>
               <div className="stat-content">
                 <span className="stat-label">Vaqt</span>
-                <span className="stat-value">{test.time} daqiqa</span>
+                <span className="stat-value">{test.istime ? human_time(test.time) : <i className='bi bi-infinity'></i>}</span>
               </div>
             </div>
             <div className="stat-item">

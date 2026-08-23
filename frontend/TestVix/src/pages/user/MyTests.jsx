@@ -5,6 +5,7 @@ import Message from '../../components/ui/Message';
 import Title from '../../components/ui/Title';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import { AuthContext } from '../../context/AuthContext';
+import { human_time } from '../../lib/func';
 
 
 
@@ -188,7 +189,7 @@ export default function MyTests() {
 
                       <div className="card-info">
 
-                        <span><i className="bi bi-clock"></i> {test.istime ? test.time : <i className="bi bi-infinity"></i>}</span>
+                        <span><i className="bi bi-clock"></i> {test.istime ? human_time(test.time) : <i className="bi bi-infinity"></i>}</span>
                         <span><i className="bi bi-question-circle"></i> {test.savollar_soni} savol</span>
                         <span><i className="bi bi-star-fill" style={{ color: '#fbbf24' }}></i> 4.5</span>
                         <span><i className="bi bi-calendar3"></i> {test.created}</span>

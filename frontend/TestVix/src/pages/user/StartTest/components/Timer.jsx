@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 
-const Timer = ({ duration, onTimeUp, isRunning }) => {
-  const validDuration =
-    duration && !isNaN(duration) ? Number(duration) : 0;
+const Timer = ({ duration, is_time, onTimeUp, isRunning }) => {
+  const validDuration = duration && !isNaN(duration) ? Number(duration) : 0;
 
-  const [timeLeft, setTimeLeft] = useState(validDuration * 60);
+  const [timeLeft, setTimeLeft] = useState(validDuration);
 
   useEffect(() => {
-    if (!isRunning || timeLeft <= 0) return;
+    if (!isRunning || timeLeft <= 0 || !is_time) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
+        if (prev <= 0) {
           clearInterval(timer);
           onTimeUp?.();
           return 0;
         }
-
+        localStorage.setItem('time', prev - 1)
         return prev - 1;
       });
     }, 1000);
@@ -25,6 +24,9 @@ const Timer = ({ duration, onTimeUp, isRunning }) => {
   }, [isRunning, onTimeUp]);
 
   const formatTime = (seconds) => {
+    if (!is_time) {
+      return '00:00'
+    }
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
 

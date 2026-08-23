@@ -38,7 +38,7 @@ async def create_testlar(db: AsyncSession, testlar: TestlarCreate, user_id: int)
         test_key=test_key,
         ispublic=testlar.ispublic,
         istime=testlar.istime,
-        time=testlar.time if testlar.istime else 60 * 60 * 60 * 24 * 365
+        time=testlar.time * 60 if testlar.istime else 60 * 60 * 60 * 24 * 365
     )
     db.add(db_testlar)
     await db.commit()
@@ -53,7 +53,7 @@ async def create_testlar(db: AsyncSession, testlar: TestlarCreate, user_id: int)
                 "fan": db_testlar.fan,
                 "tavsif": db_testlar.tavsif, 
                 "istime": f'{db_testlar.istime}',
-                "time": db_testlar.time,
+                "time": db_testlar.time * 60,
                 "created": created_to_human_time(db_testlar.created),
                 'score' : int(db_testlar.created.timestamp()),
                 "hash_url": generate_hash_url(db_testlar.id, db_testlar.test_id),
@@ -85,7 +85,7 @@ async def create_test_with_json(db: AsyncSession, testlar: TestlarCreate, user_i
         test_key=test_key,
         ispublic=testlar.ispublic,
         istime=testlar.istime,
-        time=testlar.time if testlar.istime else 60 * 60 * 60 * 24 * 365
+        time=testlar.time * 60 if testlar.istime else 60 * 60 * 60 * 24 * 365
     )
 
     db.add(db_testlar)
@@ -126,7 +126,7 @@ async def create_test_with_json(db: AsyncSession, testlar: TestlarCreate, user_i
                 "fan": db_testlar.fan,
                 "tavsif": db_testlar.tavsif, 
                 "istime": f'{db_testlar.istime}',
-                "time": db_testlar.time,
+                "time": db_testlar.time * 60,
                 "created": created_to_human_time(db_testlar.created),
                 'score' : int(db_testlar.created.timestamp()),
                 "hash_url": generate_hash_url(db_testlar.id, db_testlar.test_id),

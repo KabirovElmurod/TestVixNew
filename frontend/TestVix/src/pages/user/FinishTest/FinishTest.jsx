@@ -6,7 +6,7 @@ import QuestionReview from './components/QuestionReview';
 import QuestionNavigator from './components/QuestionNavigator';
 
 const FinishTest = () => {
-  const { test_id: testID } = useParams();
+  const { id: test_id, test_id: testID, hash_url: hashUrl } = useParams();
   const navigate = useNavigate();
 
   const questionRefs = useRef(new Map());
@@ -136,15 +136,15 @@ const FinishTest = () => {
   };
 
   const handleRetry = () => {
-    navigate(`/test/start/${testID}/`);
+    navigate(`/test/start/${test_id}/${testID}/${hashUrl}`);
   };
 
   const handleBackToHome = () => {
-    navigate('/');
+    navigate('/testlar');
   };
 
   const handleBackToTest = () => {
-    navigate(`/test/show/${testID}/`);
+    navigate(`/test/show/${test_id}/${testID}/${hashUrl}/`);
   };
 
   const handleCloseMessage = () => {

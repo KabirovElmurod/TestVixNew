@@ -7,6 +7,7 @@ import SVGShow from '../../components/ui/SVGShow';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import MathText from '../../components/MathText';
 import Message from '../../components/ui/Message';
+import { human_time } from '../../lib/func';
 // import { logoutUser } from '../../api/auth';
 // import '../../../style/block/user/page/_question.scss';
 
@@ -293,7 +294,7 @@ const QuestionsPage = () => {
                   </div>
                   <div className="stat-content">
                     <span className="stat-label">Vaqt</span>
-                    <span className="stat-value">{test.time} daqiqa</span>
+                    <span className="stat-value">{test.istime ? human_time(test.time) : <i className='bi bi-infinity'></i>}</span>
                   </div>
                 </div>
                 <div className="stat-item">

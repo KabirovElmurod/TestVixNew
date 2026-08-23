@@ -80,23 +80,24 @@ async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last
 
             
     key = f"user:{user_id}:test:{test_id}:savollar"
+    cashe_id = []
     if last_id is None:
-        ids = await redis.lrange(key, 0, limit - 1)
+        cashe_id = await redis.lrange(key, 0, limit - 1)
     else:
         pos = await redis.lpos(key, str(last_id))
 
         if pos is None:
-            ids = []
+            cashe_id = []
         else:
-            ids = await redis.lrange(key, pos + 1, pos + limit)
+            cashe_id = await redis.lrange(key, pos + 1, pos + limit)
 
     # print('\n\n\n', 'ids=>', ids, '\n\n\n')
     need_ids = []
     savollar = []
-    if ids:
-        print('\n\n\n', ids, '\n\n\n')
+    if cashe_id:
+        print('\n\n\n', cashe_id, '\n\n\n')
 
-        for id in ids:
+        for id in cashe_id:
 
             savol = await redis.get(f'savol:{id}')
             if savol:
@@ -220,6 +221,11 @@ async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last
             # })
         
     if savollar:
+        if cashe_id:
+            return {
+            'savollar':savollar,
+            'last_id': cashe_id[-1]
+            }
         res = {
             'savollar':savollar,
             'last_id': (savollar)[-1]['id'] if len(list(savollar))==limit else None

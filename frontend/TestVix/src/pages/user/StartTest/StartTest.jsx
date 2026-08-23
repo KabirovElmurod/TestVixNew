@@ -21,6 +21,8 @@ const StartTest = () => {
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [answeredQuestions, setAnsweredQuestions] = useState({});
   const [test, setTest] = useState([]);
+  const [time, setTime] = useState()
+  const [is_time, setIsTime] = useState(true)
 
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
@@ -87,8 +89,13 @@ const StartTest = () => {
 
   useEffect(() => {
     const test = localStorage.getItem('test');
+    let local_time = localStorage.getItem('time')
+    if (local_time) {
+      setTime(local_time)
+    }
     if (test) {
       const testObj = JSON.parse(test);
+      setIsTime(testObj.istime)
       setTest(testObj);
     }
 
@@ -301,6 +308,8 @@ const StartTest = () => {
             onClose={() => setIsNavOpen(false)}
             answeredQuestions={answeredQuestions}
             test={test}
+            time={time}
+            is_time={is_time}
             isTimerRunning={isTimerRunning}
             onTimeUp={handleTimeUp}
             handleSubmitTest={handleSubmitTest}

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useSearchCon } from '../../../context/SearchContext'
 import { getShowTest } from '../../../api/request_testlar'
 import { AuthContext } from '../../../context/AuthContext'
+import { human_time } from '../../../lib/func'
 // import { useSearchCon } from '../../context/SearchContext'
 
 const getInitials = (name) => {
@@ -252,6 +253,9 @@ export default function ShowTest() {
         localStorage.removeItem('test_answered')
         localStorage.removeItem('test_result')
         localStorage.removeItem('test_savol')
+        let test = localStorage.getItem('test')
+        test = JSON.parse(test)
+        localStorage.setItem('time', Number(test.time))
         navigate(`/test/start/${id}/${test_id}/${hash_url}`)
     }
 
@@ -264,6 +268,23 @@ export default function ShowTest() {
             }
         )
     }
+
+    // function human_time(totalSeconds) {
+    //     if (totalSeconds < 1) return "0 seconds";
+
+    //     // const days = Math.floor(totalSeconds / 86400);
+    //     const hours = Math.floor((totalSeconds % 86400) / 3600);
+    //     const minutes = Math.floor((totalSeconds % 3600) / 60);
+    //     const seconds = totalSeconds % 60;
+
+    //     const parts = [];
+    //     // if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+    //     if (hours > 0) parts.push(`${hours} soat`);
+    //     if (minutes > 0) parts.push(`${minutes} minut`);
+    //     if (seconds > 0) parts.push(`${seconds} sekund`);
+
+    //     return parts.join(' ');
+    // }
 
     return (
         <div className='show_test_cont'>
@@ -326,7 +347,7 @@ export default function ShowTest() {
                             <div>
                                 <i className='bi bi-clock'></i>
                                 <span>Vaqt</span>
-                                <p>{test.time} </p>
+                                <p>{test.istime ? human_time(test.time) : <i className='bi bi-infinity'></i>} </p>
                             </div>
                         </div>
                         <div className='content_div_div'>

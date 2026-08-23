@@ -9,11 +9,12 @@ const QuestionNavigator = ({
   onClose,
   answeredQuestions,
   test,
+  time,
+  is_time,
   isTimerRunning,
   onTimeUp,
   handleSubmitTest
 }) => {
-  console.log('timer=>', test);
 
   return (
     <div className={`question-navigator-container ${isOpen ? 'open' : ''}`} onClick={onClose}>
@@ -32,7 +33,8 @@ const QuestionNavigator = ({
                 test ? (
                   <Timer
                     // duration={13}
-                    duration={Number(test?.time)}
+                    duration={Number(time)}
+                    is_time={is_time}
                     onTimeUp={onTimeUp}
                     isRunning={isTimerRunning}
                   />
@@ -40,7 +42,7 @@ const QuestionNavigator = ({
                   :
                   (
                     <Timer
-                      duration={60}
+                      duration={3600}
                       onTimeUp={onTimeUp}
                       isRunning={isTimerRunning}
                     />
