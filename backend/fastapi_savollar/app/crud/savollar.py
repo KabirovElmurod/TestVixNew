@@ -18,7 +18,7 @@ from ...app.crud.func import (
     generate_hash_savol, 
     verify_hash_savol
 )
-from ..models.savollar import Natijalar, Savollar, Variantlar
+from ..models.savollar import Natijalar, Savollar, Variantlar, Testlar
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from ..schemas.savollar import SavollarCreate, SavollarUpdate, GetSavollarRequest
 from ...app.redis.redis import get_redis
@@ -61,6 +61,8 @@ async def get_savollar_by_id(db: AsyncSession, savollar_id: int):
 
 async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last_id:int = None, limit:int = 2):
     redis = await get_redis()
+    time = None 
+    istime = None
     # savollar_ids = await redis.zrange(f'test:{test_id}:savollar', 0,-1)
     if not await redis.lrange(
         f'user:{user_id}:test:{test_id}:savollar',
@@ -71,11 +73,32 @@ async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last
             0,-1
         )
         if ids:
+            time, istime = await redis.hmget(
+                f'public_tests:{test_id}',
+                'time', 'istime'
+            )
+            if time is None:
+                result = await db.execute(
+                    select(
+                        Testlar.time,
+                        Testlar.istime
+                    )
+                    .where(Testlar.id == test_id)
+                )
+                row = result.one_or_none()
+                time = row.time
+                istime = row.istime
+            # else:
+            #     time, istime = test[0], test[1]
+
             random.shuffle(ids)
             key = f"user:{user_id}:test:{test_id}:savollar"
             pipe = redis.pipeline()
             pipe.rpush(key, *ids)
-            pipe.expire(key, 10)
+            if istime:
+                pipe.expire(key, time)
+            else:
+                pipe.expire(key, 5 * 60 * 60)
             await pipe.execute()
 
             
@@ -125,17 +148,78 @@ async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last
         )
         ids = result_id.scalars().all()
         if ids:
-            await redis.zadd(
+            if not time:
+                time, istime = await redis.hmget(
+                    f'public_tests:{test_id}',
+                    'time', 'istime'
+                )
+                if time is None:
+                    result = await db.execute(
+                        select(
+                            Testlar.time,
+                            Testlar.istime
+                        )
+                        .where(Testlar.id == test_id)
+                    )
+                    row = result.one_or_none()
+                    time = row.time
+                    istime = row.istime
+                # else:
+                #     print('\n\n\n', 'testsssss=>', test, '\n\n\n')
+                #     time, istime = test[0], test[1]
+            pipe = redis.pipeline()
+            pipe.zadd(
                 f'test:{test_id}:savollar',
                 {
                     str(i):i for i in ids
                 }
             )
-            await redis.set(f"test:{test_id}:savollar:ready", 1, ex=3600)
-            await redis.rpush(
-                f"user:{user_id}:test:{test_id}:savollar",
-                *ids
-            )
+            if istime:
+                pipe.expire(
+                    f'test:{test_id}:savollar',
+                    time
+                )
+                pipe.set(
+                    f"test:{test_id}:savollar:ready", 1, ex=time
+                )
+                pipe.rpush(
+                    f"user:{user_id}:test:{test_id}:savollar",
+                    *ids
+                )
+                pipe.expire(
+                        f"user:{user_id}:test:{test_id}:savollar",
+                        time
+                )
+            else:
+                pipe.expire(
+                    f'test:{test_id}:savollar',
+                    5 * 60 * 60
+                )
+                pipe.set(
+                    f"test:{test_id}:savollar:ready", 1, ex=5 * 60 * 60
+                )
+                pipe.rpush(
+                    f"user:{user_id}:test:{test_id}:savollar",
+                    *ids
+                )
+                pipe.expire(
+                    f"user:{user_id}:test:{test_id}:savollar",
+                    5 * 60 * 60
+                )
+            await pipe.execute()
+            # await redis.zadd(
+            #     f'test:{test_id}:savollar',
+            #     {
+            #         str(i):i for i in ids
+            #     }
+            # )
+            
+            # await redis.set(f"test:{test_id}:savollar:ready", 1, ex=3600)
+            
+            # await redis.rpush(
+            #     f"user:{user_id}:test:{test_id}:savollar",
+            #     *ids
+            # )
 
     
     condition = Savollar.test_id == test_id
@@ -146,8 +230,25 @@ async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last
             Savollar.test_id == test_id,
             Savollar.id>last_id
         )
-    
-    
+    if not time:
+        time, istime = await redis.hmget(
+            f'public_tests:{test_id}',
+            'time', 'istime'
+        )
+        if time is None:
+            result = await db.execute(
+                select(
+                    Testlar.time,
+                    Testlar.istime
+                )
+                .where(Testlar.id == test_id)
+            )
+            row = result.one_or_none()
+            time = row.time
+            istime = row.istime
+        # else:
+        #     time, istime = test[0], test[1]
+
     result = (
         select(
             Savollar.id,
@@ -215,7 +316,11 @@ async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last
             #         "text": v.text,
             #         'v_hash': generate_hash_url(v.id, savollar[savol.id]['savol_hash'])
             #     })
-            await redis.set(f'savol:{row.id}', json.dumps(new_savol), ex = 10)
+            if istime:
+                await redis.set(f'savol:{row.id}', json.dumps(new_savol), ex = time)
+            else:
+                await redis.set(f'savol:{row.id}', json.dumps(new_savol), ex = 5*60*60)
+
             # await redis.zadd(f'test:{row.test_id}:savollar', {
             #     str(row.id): row.id
             # })
@@ -224,7 +329,7 @@ async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last
         if cashe_id:
             return {
             'savollar':savollar,
-            'last_id': cashe_id[-1]
+            'last_id': int(cashe_id[-1])
             }
         res = {
             'savollar':savollar,
