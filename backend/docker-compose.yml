@@ -13,6 +13,18 @@ services:
       - pgdata:/var/lib/postgresql/data
 
 
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - account
+      - testlar
+      - savollar
+
 
   redis:
     image: redis/redis-stack:latest
@@ -29,8 +41,10 @@ services:
     build: ./fastapi_account
     volumes:
       - .:/app
-    ports:
-      - "8001:8000"
+    expose:
+      - "8000"
+    # ports:
+    #   - "8001:8000"
     depends_on:
       - redis
 
@@ -38,8 +52,10 @@ services:
     build: ./fastapi_testlar
     volumes:
       - .:/app
-    ports:
-      - "8002:8000"
+    expose:
+      - "8000"
+    # ports:
+    #   - "8002:8000"
     depends_on:
       - redis
     env_file:
@@ -51,15 +67,19 @@ services:
     #   - "host.docker.internal:host-gateway"
     volumes:
       - .:/app
-    ports:
-      - "8003:8000"
+    expose:
+      - "8000"
+    # ports:
+    #   - "8003:8000"
     depends_on:
       - redis
   
   frontend:
     build: ../frontend/TestVix
-    ports:
-      - "5173:5173"
+    expose:
+      - "5173"
+    # ports:
+    #   - "5173:5173"
     volumes:
       - ../frontend/TestVix:/app
       - /app/node_modules

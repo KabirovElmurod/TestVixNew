@@ -43,6 +43,8 @@ export default function Testlar() {
         setLoading(true);
         try {
             const res = await getPublicTest({ 'last_score': Number(score) });
+            console.log('res=>', res);
+
             if (res.length > 0) {
                 setCategor(res.at(-1).cates)
                 setTestCate(

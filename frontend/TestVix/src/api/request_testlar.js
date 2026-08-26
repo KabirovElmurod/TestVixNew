@@ -1,4 +1,4 @@
-const API_URl_testlar = 'http://localhost/api1/testlar'; // testlar url
+const API_URl_testlar = 'http://localhost/api2/testlar'; // testlar url
 
 
 export const profile_img = () => {

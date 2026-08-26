@@ -32,17 +32,27 @@
 
     }
 
+    .navs-menu {
+        display: flex;
+        height: 100vh;
+        flex-direction: column;
+        justify-content: space-between;
+    }
 
+    // .profile-theme {
+    //     position: absolute;
+    //     bottom: 0;
+    //     width: calc(100% - 1px);
+    // }
 
     .nav-menu,
     .profile-theme {
         display: flex;
         flex-direction: column;
         gap: 3px;
-        padding: 0;
         list-style: none;
         margin: 0;
-        padding: 0 20px;
+        padding: 10px 20px;
         text-align: start !important;
 
         li {

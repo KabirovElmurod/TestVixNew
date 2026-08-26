@@ -95,29 +95,30 @@ export default function NavbarUser() {
                 <Logo closeMobileMenu={closeMobileMenu}></Logo>
 
                 <Hamburger setMobileMenuOpen={setMobileMenuOpen} mobileMenuOpen={mobileMenuOpen} />
+                <div className='navs-menu'>
+                    <ul className={`nav-menu ${mobileMenuOpen ? 'active' : ''}`}>
 
-                <ul className={`nav-menu ${mobileMenuOpen ? 'active' : ''}`}>
-
-                    {
-                        user.map((menu) => {
-                            return (
-                                <li key={menu.link}>
-                                    <NavLink
-                                        to={menu.link}
-                                        onClick={mobileMenuOpen && windowWidth < 902 ? () => closeMobileMenu(false) : () => closeMobileMenu(false)}
-                                        className={({ isActive }) => isActive ? 'active' : ''}
-                                    >
-                                        <i className={menu.icon}></i>
-                                        <span>
-                                            {menu.name}
-                                        </span>
-                                    </NavLink>
-                                </li>
-                            )
-                        })
-                    }
-                </ul>
-                <ProfileTheme profile={profile} closeMobileMenu={closeMobileMenu} themeIcon={themeIcon} toggleTheme={toggleTheme} themeLabel={themeLabel}></ProfileTheme>
+                        {
+                            user.map((menu) => {
+                                return (
+                                    <li key={menu.link}>
+                                        <NavLink
+                                            to={menu.link}
+                                            onClick={mobileMenuOpen && windowWidth < 902 ? () => closeMobileMenu(false) : () => closeMobileMenu(false)}
+                                            className={({ isActive }) => isActive ? 'active' : ''}
+                                        >
+                                            <i className={menu.icon}></i>
+                                            <span>
+                                                {menu.name}
+                                            </span>
+                                        </NavLink>
+                                    </li>
+                                )
+                            })
+                        }
+                    </ul>
+                    <ProfileTheme profile={profile} closeMobileMenu={closeMobileMenu} themeIcon={themeIcon} toggleTheme={toggleTheme} themeLabel={themeLabel}></ProfileTheme>
+                </div>
             </div>
         </div>
     )

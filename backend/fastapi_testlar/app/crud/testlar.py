@@ -8,7 +8,6 @@ from ...app.crud.func import (
     created_to_human_time, 
     generate_hash_url
 )
-from rapidfuzz import fuzz
 # import fuzzy
 from sqlalchemy import distinct
 import json
@@ -16,6 +15,7 @@ from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar, Hash
 from ..schemas.testlar import TestlarCreate, TestlarUpdate, SearchTestRequest, GetPublicTestlarRequest
 from ..redis.redis import get_redis
 from redis.commands.search.query import Query, NumericFilter
+from rapidfuzz import process, fuzz
 
 from ...app.task import generate_hashtags
 # from ..app.crud. import created_to_human_time
@@ -62,7 +62,7 @@ async def create_testlar(db: AsyncSession, testlar: TestlarCreate, user_id: int)
                 "hashtag": ' '
             }
     )
-    await redis.expire(f'public_tests:{db_testlar.id}', 30)
+    await redis.expire(f'public_tests:{db_testlar.id}', int(db_testlar.time) * 60)
     # redis = await get_redis()
     # # Invalidate search cache when new test is created
     # if testlar.ispublic:
@@ -135,7 +135,7 @@ async def create_test_with_json(db: AsyncSession, testlar: TestlarCreate, user_i
                 "hashtag": ' '
             }
     )
-    await redis.expire(f'public_tests:{db_testlar.id}', 30)
+    await redis.expire(f'public_tests:{db_testlar.id}', int(db_testlar.time) * 60)
 
     
     
@@ -402,12 +402,14 @@ async def get_public_testlar(db: AsyncSession, data: GetPublicTestlarRequest, li
             'savollar_soni': savollar_soni,
             'hashtag_names': hashtag_name
         })
-        for hashtag in hashtag_name:
-            if await redis.exists(f'hashtag:{hashtag}'):
-                continue
-            await redis.hset(f'hashtag:{hashtag}', mapping={
-                'hashtag':hashtag
-            })
+        await redis.sadd('hashtags', *hashtag_name)
+        await redis.expire('hashtags', 3600)
+        # for hashtag in hashtag_name:
+        #     if await redis.exists(f'hashtag:{hashtag}'):
+        #         continue
+        #     await redis.hset(f'hashtag:{hashtag}', mapping={
+        #         'hashtag':hashtag
+        #     })
         if await redis.exists(f'public_tests:{test.id}'):
             continue
         await redis.hset(
@@ -430,7 +432,7 @@ async def get_public_testlar(db: AsyncSession, data: GetPublicTestlarRequest, li
                 'hashtag': " ".join(hashtag_name),
             }
         )
-        await redis.expire(f'public_tests:{test.id}', 30)
+        await redis.expire(f'public_tests:{test.id}', int(test.time))
 
         # await redis.hset(f'')
 
@@ -491,16 +493,28 @@ async def search_testlar(db: AsyncSession, data, limit: int = 4, self: bool = Fa
     # else:
     #     last = None
     # for word in words:
-
     if self == False:
-        search = [
-            f'@hashtag:%%{word}%%' for word in words
-        ]
+        hashtags = await redis.smembers('hashtags')
+        hashtag = set()
+        for word in words:
+            matches = process.extract(
+                word,
+                hashtags,
+                scorer=fuzz.WRatio,
+                limit=5,
+                score_cutoff=20,
+            )
+            print('\n\n\n', 'matches=>', matches, '\n\n\n')
+            hashtag.update(match[0] for match in matches)
+            # hashtag = [match[0] for match in matches]
+        
+        print('\n\n\n', 'hashtag=>', hashtag, '\n\n\n')
+        search = f'@hashtags:{{{'|'.join(hashtag)}}}' 
+            
     else:
-        search = [
-            f'@hashtag:{word}' for word in words
-        ]
-    search = ' | '.join(search)
+        search = f'@hashtags:{{{'|'.join(words)}}}' 
+        
+    # search = '|'.join(search)
     print('\n\n\n', search, '\n\n\n')
     if not last_score:
         query = (
@@ -516,7 +530,7 @@ async def search_testlar(db: AsyncSession, data, limit: int = 4, self: bool = Fa
             .sort_by('score', asc=False)
         )
     cashe_result = await redis.ft('ind:public_tests').search(query)
-    print('\n\n\n', cashe_result, '\n\n\n')
+    print('\n\n\n', 'cashe_results=>', cashe_result, '\n\n\n')
     results = []
     if cashe_result.docs and len(cashe_result.docs)>0:
         next_last_score = None
@@ -559,8 +573,8 @@ async def search_testlar(db: AsyncSession, data, limit: int = 4, self: bool = Fa
             
         # respon['Boshqa testlar'] = response
         print('\n\n\n', 'cashe_search', '\n\n\n')
-        if len(results) == limit:
-            return response
+        # if len(results) == limit:
+        return response
     
     # 1. HASHTAG QIDIRISH (Database search)
     print('\n\n\n', 'db search', '\n\n\n')
@@ -700,10 +714,12 @@ async def search_testlar(db: AsyncSession, data, limit: int = 4, self: bool = Fa
             results.append(new_test)
         elif last_score is None:
             results.append(new_test)
+        
 
         if await redis.exists(f'public_tests:{test.id}'):
             continue
-        await redis.hset(
+        pipe = redis.pipeline()
+        pipe.hset(
             f'public_tests:{test.id}',
             mapping={
                 "test_id": test.test_id,
@@ -721,9 +737,12 @@ async def search_testlar(db: AsyncSession, data, limit: int = 4, self: bool = Fa
                 "hashtag": ' '.join(hashtag_name)
             }
         )
-        await redis.expire(f'public_tests:{test.id}', 30)
+        pipe.expire(f'public_tests:{test.id}', 3600)
+        pipe.sadd('hashtags', *hashtag_name)
+        await pipe.execute()
 
-
+    print('\n\n\n', 'data=>', data, '\n\n\n')
+    print('\n\n\n', 'results=>', results, '\n\n\n')
     response = {
         "results": results,
         "last_score": float(results[-1]["score"]) if len(results)==limit else None,

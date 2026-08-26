@@ -37,17 +37,17 @@ const QuestionNavigator = ({ questions, scrollToQuestion, activeQuestionId, isOp
         </div> */}
 
         <div className="navigator-grid">
-          {questions.map((question) => {
+          {questions.map((question, index) => {
             const isActive = activeQuestionId === `question-${question.id}`;
             const status = getQuestionStatus(question);
 
             return (
               <button
                 key={question.id}
-                className={`navigator-button ${isActive ? 'active' : ''} ${status}`}
+                className={`navigator-button  ${status}`}
                 onClick={() => scrollToQuestion(question.id)}
               >
-                {question.id}
+                {index + 1}
               </button>
             );
           })}

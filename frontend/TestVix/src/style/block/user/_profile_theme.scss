@@ -1,22 +1,25 @@
-.profile-theme{
-    display: block;
-    padding: 20px;
-    position: relative;
-    bottom: -60px;
+.profile-theme {
+    // display: block;
+    // padding: 20px;
+    // position: relative;
+    // bottom: -60px;
     text-align: start;
     border-top: 1px solid var(--border);
 }
-.profile-theme img{
+
+.profile-theme img {
     width: 50px;
     height: 50px;
     object-fit: cover;
     border-radius: 12px;
 }
-.profile-theme li a{
+
+.profile-theme li a {
     display: flex;
     align-items: center;
 }
-.profile-theme li a{
+
+.profile-theme li a {
     margin: 10px 0;
     padding: 0 0 0 5px !important;
 }

@@ -77,7 +77,6 @@ def generate_hash_url(id: int, test_code: str | int):
     key = 'awuduwhduahuhsuihwhauhdw87y7a8hudw78dhuah87'
     message = f"{id}|{test_code}"
     hash_value = hmac.new(key.encode(), message.encode(), hashlib.sha256).hexdigest()
-    print('\n\n\n', 'id=', id, 'test_code=', test_code, 'hash_value=', hash_value, '\n\n\n')
     return hash_value
 
 def verify_hash_url(id: int, test_code: str | int, hash_value: str):

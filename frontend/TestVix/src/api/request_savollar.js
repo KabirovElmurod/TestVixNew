@@ -1,4 +1,4 @@
-const API_URl_savollar = 'http://localhost/api2/savollar';
+const API_URl_savollar = 'http://localhost/api3/savollar';
 
 
 export const getSavol = async (data) => {

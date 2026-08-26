@@ -16,7 +16,7 @@ function CateCard({ handleCopyId, steps_class, tests, category, is_cate, last_sc
     const sliderRef = useRef(null);
 
     const fetchTests = useCallback(async (score, lst_id) => {
-        if (!hasMore || loading_ref.current) return;
+        if (!hasMore || loading_ref.current || !lastScore) return;
 
         loading_ref.current = true;
         setLoading(true);

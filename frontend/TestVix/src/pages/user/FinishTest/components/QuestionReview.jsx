@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AnswerItem from './AnswerItem';
+import MathText from '../../../../components/MathText';
+import SVGShow from '../../../../components/ui/SVGShow';
 
 const QuestionReview = ({ question, index, selectedAnswer }) => {
+  const [svg, setSvg] = useState('');
+  const [json, setJson] = useState(() => {
+    try {
+      const parsed = JSON.parse(question.svg_json);
+      return parsed.elements.length > 0 ? question.svg_json : null;
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      return null;
+    }
+  });
   // const correctAnswerIndex = question.variantlar.findIndex(v => v.is_true);
   // const isCorrect = selectedAnswer === correctAnswerIndex;
   // const isSkipped = selectedAnswer === undefined;
@@ -26,9 +38,13 @@ const QuestionReview = ({ question, index, selectedAnswer }) => {
       </div>
 
       <h2 className="question-body">
-        {question.text}
+        <MathText text={question.text}></MathText>
       </h2>
-
+      {
+        json ?
+          <SVGShow svg={svg} setSVG={setSvg} json={json} />
+          : null
+      }
       <div className="options-grid">
         {question.variantlar.map((variant, variantIndex) => {
           const isSelected = selectedAnswer.v_id == variant.id
