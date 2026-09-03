@@ -7,7 +7,7 @@ export default function Home() {
   const { token, logout } = useContext(AuthContext);
   const [testResult, setTestResult] = useState(null);
   console.log('salom');
-  
+
   const steps = [
     {
       id: "1",
@@ -40,9 +40,9 @@ export default function Home() {
 
   return (
     <div className="home-container">
-      <FonColor lightColor="#279af8" darkColor="#054298" top_y={100} left_x={-250} className="fon_color_1" />
-      <FonColor lightColor="#6366f1" darkColor="#312e81" top_y={400} left_x={600} wd={400} ht={400} className="fon_color_1" />
-      
+      {/* <FonColor lightColor="#279af8" darkColor="#054298" top_y={100} left_x={-250} className="fon_color_1" /> */}
+      {/* <FonColor lightColor="#6366f1" darkColor="#312e81" top_y={400} left_x={600} wd={400} ht={400} className="fon_color_1" /> */}
+
       <div className="home-content">
         <div className="hero-section">
           <h1 className="home-title">⚔️ Test orqali raqobat qiling. Bilimingizni oshiring.</h1>
@@ -62,19 +62,19 @@ export default function Home() {
           <div className="steps-grid">
             {steps.map((step, index) => (
               <div key={step.id} className="step-card-container">
-                <FonColor 
-                  lightColor={index === 0 ? "#279af8" : index === 1 ? "#6366f1" : "#4ecdc4"} 
-                  darkColor={index === 0 ? "#054298" : index === 1 ? "#312e81" : "#00b894"} 
-                  top_y={600} left_x={index * 300 - 300} wd={200} ht={200} 
-                />
+                {/* <FonColor
+                  lightColor={index === 0 ? "#279af8" : index === 1 ? "#6366f1" : "#4ecdc4"}
+                  darkColor={index === 0 ? "#054298" : index === 1 ? "#312e81" : "#00b894"}
+                  top_y={600} left_x={index * 300 - 300} wd={200} ht={200}
+                /> */}
                 <div className="step-card">
-                <div className="step-icon">{step.icon}</div>
-                <div className="step-info">
-                  <span className="step-number">{step.id}-qadam</span>
-                  <h3 className="step-title">{step.title}</h3>
-                  <p className="step-desc">{step.desc}</p>
+                  <div className="step-icon">{step.icon}</div>
+                  <div className="step-info">
+                    <span className="step-number">{step.id}-qadam</span>
+                    <h3 className="step-title">{step.title}</h3>
+                    <p className="step-desc">{step.desc}</p>
+                  </div>
                 </div>
-              </div>
               </div>
             ))}
           </div>
@@ -132,7 +132,7 @@ export default function Home() {
         {/* 6. Sample Test */}
         <div className="sample-test-section">
           <div className="interactive-card">
-            <FonColor lightColor="#f59e0b" darkColor="#d97706" top_y={0} left_x={0} wd={150} ht={150} />
+            {/* <FonColor lightColor="#f59e0b" darkColor="#d97706" top_y={0} left_x={0} wd={150} ht={150} /> */}
             <h3>🧪 Sinab ko'ring</h3>
             <p className="question">Savol: 2 + 2 = ?</p>
             <div className="options">

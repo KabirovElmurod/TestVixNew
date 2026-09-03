@@ -24,7 +24,7 @@ export const nouser = [
         'name': 'Kirish',
         'class': 'menu_item_login'
     },
-    
+
     {
         'link': '/register',
         'name': "Ro'yhatdan o'tish",
@@ -60,7 +60,7 @@ export const user = [
     {
         'link': '/my_test',
         'name': 'Mening testlarim',
-        'icon': 'bi bi-stack' 
+        'icon': 'bi bi-stack'
     },
     {
         'link': '/leadeboard',
@@ -76,6 +76,11 @@ export const user = [
         'link': '/profile',
         'name': 'Profil',
         'icon': 'bi bi-person'
+    },
+    {
+        'link': '/aloqa',
+        'name': 'Aloqa',
+        'icon': 'bi bi-chat-left-text'
     },
     {
         'link': '/logout',

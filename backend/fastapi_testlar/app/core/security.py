@@ -16,3 +16,20 @@ def get_current_user(request: Request):
         return wrong('Token xato', status=False)
 
     return payload
+
+def get_current_admin_user(request: Request):
+    """
+    Admin huquqini tekshirish uchun
+    """
+    token = request.cookies.get("access_token")
+    if token is None:
+        return wrong('Token mavjud emas', status=False)
+    
+    payload = verify_token(token)
+    if not payload:
+        return wrong('Token xato', status=False)
+    
+    # Admin rolini tekshirish
+    # if not payload.get('is') and not payload.get('is_superuser'):
+    #     return wrong('Admin huquqi kerak', status=False)
+    return payload

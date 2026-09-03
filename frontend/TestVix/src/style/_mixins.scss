@@ -1,13 +1,14 @@
-@mixin ul_li_a{
+@mixin ul_li_a {
     margin: 0;
     padding: 0;
     list-style: none;
-    a{
+
+    a {
         text-decoration: none;
         color: black;
     }
 }
 
-@mixin font_family{
+@mixin font_family {
     font-family: 'Google Sans', sans-serif;
 }

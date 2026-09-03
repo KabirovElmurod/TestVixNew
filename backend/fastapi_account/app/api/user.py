@@ -2,27 +2,35 @@ from urllib import response
 
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from ...app.session import get_db
 from ...app.schemas.user import UserCreate
 from ...app.crud.user import create_user, get_users
-
+from ...app.core.security import get_current_user
 router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post("/")
 async def add_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     return await create_user(db, user.name, user.email)
 
-@router.get("/")
-async def list_users(db: AsyncSession = Depends(get_db)):
-    return await get_users(db)
+
+
+@router.get('/users')
+async def users(user=Depends(get_current_user)):
+    if user.get('status') == False and user.get('role') != 'admin':
+        return {'message':'Foydalanuvchini tekshirishda xatolik' , 'status': False}
+    return await get_users()
+    
+
+# @router.get("/")
+# async def list_users(db: AsyncSession = Depends(get_db)):
+#     return await get_users(db)
 
 
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...app.session import get_db
+# from fastapi_account.app.session import get_db
 from ...app.schemas.auth import LoginSchema, MessageResponse, TokenResponse, RegisterSchema
 from ..crud.user import get_user_by_email, get_user_by_username
 from ...app.cure.auth import hash_password, verify_password, create_access_token
@@ -39,12 +47,12 @@ async def login(
 ):
     user = await get_user_by_username(db, data.username)
 
-    if not user or not verify_password(data.password, user.password):
+    if not user and not verify_password(data.password, user.password):
         return JSONResponse(
             content={"message": "Noto'g'ri username yoki password", "status": False}
         )
 
-    token = create_access_token({"sub": user.username, "id": user.id})
+    token = create_access_token({"sub": user.username, "id": user.id, 'role': 'admin' if user.is_admin else 'user'})
 
     response = JSONResponse(
         content={
@@ -52,7 +60,8 @@ async def login(
             "status": True,
             'user': {
                 'username':user.username,
-                'nickname':user.nickname
+                'nickname':user.nickname,
+                'role': 'admin' if user.is_admin else 'user'
             }
         }
     )
@@ -90,7 +99,7 @@ async def register(data: RegisterSchema, db: AsyncSession = Depends(get_db)):
         return {"message": "Harf va raqam bo'lishi kerak", "status": False} 
     new_user = await create_user(db, data.username, hash_password(data.password), data.email, data.nickname)
     
-    token = create_access_token({"sub": new_user.username, "id": new_user.id})
+    token = create_access_token({"sub": new_user.username, "id": new_user.id, 'role': 'admin' if new_user.is_admin else 'user'})
 
     response = JSONResponse(
         content={
@@ -98,7 +107,8 @@ async def register(data: RegisterSchema, db: AsyncSession = Depends(get_db)):
             "status": True,
             'user': {
                     'username':data.username,
-                    'nickname':data.nickname
+                    'nickname':data.nickname,
+                    'role': 'admin' if new_user.is_admin else 'user'
                 }
         }
     )
@@ -119,11 +129,11 @@ async def register(data: RegisterSchema, db: AsyncSession = Depends(get_db)):
     # return {"id": new_user.id, "username": new_user.username}
 
 
-from ...app.core.security import get_current_user
+
 
 @router.get("/me")
 async def me(user=Depends(get_current_user)):
-    print('\n\n\n', user, '\n\n\n')
+    # print('\n\n\n', user, '\n\n\n')
     if user.get('status') == False:
         return user
     return {"user": user, 'status':True}

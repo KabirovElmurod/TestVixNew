@@ -24,7 +24,7 @@ services:
       - account
       - testlar
       - savollar
-
+      - comment
 
   redis:
     image: redis/redis-stack:latest
@@ -71,6 +71,17 @@ services:
       - "8000"
     # ports:
     #   - "8003:8000"
+    depends_on:
+      - redis
+  
+  comment:
+    build: ./fastapi_comment
+    volumes:
+      - .:/app
+    expose:
+      - "8000"
+    # ports:
+    #   - "8004:8000"
     depends_on:
       - redis
   

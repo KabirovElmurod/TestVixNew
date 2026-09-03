@@ -1,5 +1,7 @@
 from fastapi import FastAPI
-from .app.api import user
+from .app.api import user as user_router
+from .app.api import admin as admin_router
+# from .app.api import user
 
 app = FastAPI()
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +13,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(user.router)
+app.include_router(user_router.router)
+app.include_router(admin_router.router)
 
 @app.get("/")
 async def root():

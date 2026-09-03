@@ -3,6 +3,7 @@ from xml.etree.ElementInclude import include
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .app.api.savollar import router as savollar_router
+from .app.api.admin_savollar import router as admin_savollar_router
 
 app = FastAPI()
 
@@ -22,6 +23,7 @@ async def startup_event():
     await create_index_public_test_redis()
     await create_index_hashtag_redis()
 app.include_router(savollar_router)
+app.include_router(admin_savollar_router)
 
 @app.get("/")
 async def root():

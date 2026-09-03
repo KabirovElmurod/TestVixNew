@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import FonColor from "../../components/ui/FonColor";
 
 export default function Login() {
-  const { login } = useContext(AuthContext);
+  const { login, handleRole } = useContext(AuthContext);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +16,8 @@ export default function Login() {
     e.preventDefault();
     const res = await loginUser({ username, password });
     if (res.status) {
-      await login(true);
+      handleRole(res.user)
+      login(true);
       localStorage.setItem('user', JSON.stringify(res.user))
       navigate('/');
     } else {

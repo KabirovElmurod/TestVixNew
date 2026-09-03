@@ -69,3 +69,22 @@ class SavollarRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+# Admin-specific schemas (without hash verification)
+class AdminQuestionCreate(BaseModel):
+    test_id: int
+    text: str
+    svg_json: Optional[str] = None
+
+class AdminQuestionUpdate(BaseModel):
+    text: Optional[str] = None
+    svg_json: Optional[str] = None
+
+class AdminVariantCreate(BaseModel):
+    savol_id: int
+    text: str
+    is_true: bool
+
+class AdminVariantUpdate(BaseModel):
+    text: Optional[str] = None
+    is_true: Optional[bool] = None

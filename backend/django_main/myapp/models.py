@@ -79,3 +79,21 @@ class Natijalar(models.Model):
 # class NatijaAnswer(models.Models):
 #     natija = models.ForeignKey(Natijalar, on_delete=models.CASCADE)
 
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    test = models.ForeignKey(Testlar, on_delete=models.CASCADE, null=True)
+    text = models.TextField(null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    type = models.CharField(max_length=50, null=True)  # comment yoki reply
+    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)  # Agar reply bo'lsa, parent commentni saqlash uchun
+
+class Aloqa(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    name = models.CharField(max_length=200, null=True, blank=True)
+    email = models.EmailField(max_length=200, null=True, blank=True)
+    telegram = models.CharField(max_length=200, null=True, blank=True)
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    type = models.CharField(max_length=50, null=True)
+    is_read = models.BooleanField(default=False)

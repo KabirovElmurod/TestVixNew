@@ -1,0 +1,8 @@
+// Admin Panel Styles
+// Import all admin style files
+.admin_panel {
+    @import 'layout';
+    @import 'dashboard';
+    @import 'pages';
+    @import 'components';
+}

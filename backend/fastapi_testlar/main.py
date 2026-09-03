@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .app.api.testlar import router as testlar_router
+from .app.api.admin_testlar import router as admin_testlar_router
 
 app = FastAPI()
 
@@ -23,6 +24,7 @@ async def startup_event():
     # await redis.create_index()
     # await redis.create_search_index()  # Create search index for caching
 app.include_router(testlar_router)
+app.include_router(admin_testlar_router)
 
 @app.get("/")
 async def root():
