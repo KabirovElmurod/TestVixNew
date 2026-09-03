@@ -9,7 +9,7 @@ import Logo from './ui/Logo'
 import ThemeButton from './ui/ThemeButton'
 import MenuNavbar from './MenuNavbar'
 import ProfileTheme from './ui/ProfileTheme'
-import { profile_img } from '../api/request_testlar'
+import { logo_img, profile_img } from '../api/request_testlar'
 // import { profile_img } from '../../api/request'
 
 export default function Navbar() {
@@ -20,6 +20,7 @@ export default function Navbar() {
     const themeLabel = theme === 'dark' ? 'Light' : 'Dark';
     const themeIcon = theme === 'dark' ? '☀️' : '🌙';
     let [profile, setProfile] = useState('')
+    let [logo, setLogo] = useState(null)
 
     const closeMobileMenu = () => {
         setMobileMenuOpen(false);
@@ -30,6 +31,7 @@ export default function Navbar() {
         () => {
             async function func() {
                 setProfile(await profile_img())
+                setLogo(await logo_img())
             }
             func()
         },
@@ -61,7 +63,7 @@ export default function Navbar() {
     return (
         <div>
             <div className='navbar'>
-                <Logo closeMobileMenu={closeMobileMenu}></Logo>
+                <Logo logo={logo} closeMobileMenu={closeMobileMenu}></Logo>
 
                 <Hamburger setMobileMenuOpen={setMobileMenuOpen} mobileMenuOpen={mobileMenuOpen} />
 

@@ -4,7 +4,9 @@ const API_URL_admin_testlar = 'http://localhost/api2/testlar/admin'
 export const profile_img = () => {
     return '../public/profile.png'
 }
-
+export const logo_img = () => {
+    return '../public/testvix.png'
+}
 // get test public
 export const getPublicTest = async (data) => {
     const res = await fetch(`${API_URl_testlar}/testlar`, {

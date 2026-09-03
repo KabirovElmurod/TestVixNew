@@ -8,7 +8,7 @@ import Logo from './ui/Logo'
 import ThemeButton from './ui/ThemeButton'
 import MenuNavbar from './MenuNavbar'
 import ProfileTheme from './ui/ProfileTheme'
-import { profile_img } from '../api/request_testlar'
+import { logo_img, profile_img } from '../api/request_testlar'
 // import { profile_img } from '../../api/request'
 
 export default function NavbarUser() {
@@ -21,6 +21,7 @@ export default function NavbarUser() {
     const themeLabel = theme === 'dark' ? 'Light' : 'Dark';
     const themeIcon = theme === 'dark' ? '☀️' : '🌙';
     let [profile, setProfile] = useState(null)
+    let [logo, setLogo] = useState(null)
 
 
     const closeMobileMenu = (tag) => {
@@ -60,6 +61,7 @@ export default function NavbarUser() {
         () => {
             async function func() {
                 setProfile(await profile_img())
+                setLogo(await logo_img())
             }
             func()
         },
@@ -92,7 +94,7 @@ export default function NavbarUser() {
             <MenuNavbar profile={profile} themeIcon={themeIcon} themeLabel={themeLabel} toggleTheme={toggleTheme} closeMobileMenu={closeMobileMenu} setMobileMenuOpen={setMobileMenuOpen} mobileMenuOpen={mobileMenuOpen} />
             <div className='user-sidebar-back' ref={user_sidebar_back} onClick={closeMobileMenu}></div>
             <div className='user-sidebar' ref={user_sidebar} /*style={{left: mobileMenuOpen || windowWidth > 902? '0' : '-280px'}}*/ >
-                <Logo closeMobileMenu={closeMobileMenu}></Logo>
+                <Logo logo={logo} closeMobileMenu={closeMobileMenu}></Logo>
 
                 <Hamburger setMobileMenuOpen={setMobileMenuOpen} mobileMenuOpen={mobileMenuOpen} />
                 <div className='navs-menu'>
