@@ -86,7 +86,19 @@ TestVix loyihasida ta’lim platformasi uchun frontend va backendni mustaqil ser
 ![TestVix test ishlash sahifasi](docs/screenshots/test-taking.png)
 Bir nechta rasm uchun alohida fayl nomlaridan foydalaning, masalan admin-panel.png yoki mobile-view.png.
 -->
-![Home page](assets/Kirish/home.png)
-![Testlar page](assets/User/testlar.png)
-![Mening testlar page](assets/User/mytest.png)
-![Testni ishlash page](assets/User/starttest.png)
+
+### Bosh sahifa
+
+![Home page](assets/Kirish/home.png "TestVix bosh sahifasi")
+
+### Ommaviy testlar
+
+![Testlar page](assets/User/testlar.png "Ommaviy testlar sahifasi")
+
+### Mening testlarim
+
+![Mening testlar page](assets/User/mytest.png "Foydalanuvchining testlari sahifasi")
+
+### Test ishlash jarayoni
+
+![Testni ishlash page](assets/User/starttest.png "Test ishlash sahifasi")
