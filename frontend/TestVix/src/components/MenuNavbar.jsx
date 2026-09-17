@@ -4,9 +4,13 @@ import Logo from './ui/Logo'
 import ThemeButton from './ui/ThemeButton'
 import ProfileTheme from './ui/ProfileTheme'
 import { getSearchTest, profile_img } from '../api/request_testlar'
+import { getCachedAvatar } from '../api/profile'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useSearchCon } from '../context/SearchContext'
 import { useNavigate } from 'react-router-dom'
+
+const API_BASE = "http://localhost/api1";
+
 export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme, closeMobileMenu, setMobileMenuOpen, mobileMenuOpen }) {
   const navigate = useNavigate()
   let { pathname } = useLocation()
@@ -15,8 +19,46 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
 
   const { searchText, setSearchText, searchTest, setSearchTest } = useSearchCon()
   const [search, setSearch] = useState('')
+  const [avatar, setAvatar] = useState(profile)
+  const [user, setUser] = useState(null)
 
-  const [openSmallSearch, setSmallSearch] = useState(false)
+  const [openSmallSearch, setOpenSmallSearch] = useState(false)
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('user'))
+    setUser(userData)
+
+    if (userData) {
+      // Check cached avatar first
+      const cachedAvatar = getCachedAvatar(userData.id)
+      if (cachedAvatar) {
+        setAvatar(cachedAvatar)
+      } else if (userData.avatar) {
+        // Handle avatar URL - combine with API base if it's a relative path
+        const avatarUrl = userData.avatar.startsWith('http')
+          ? userData.avatar
+          : `${API_BASE}${userData.avatar}`
+        setAvatar(avatarUrl)
+      } else if (profile) {
+        setAvatar(profile)
+      }
+    } else if (profile) {
+      setAvatar(profile)
+    }
+  }, [profile])
+
+  const getAvatarDisplay = () => {
+    if (avatar && avatar != 'null') {
+      return <img src={avatar} alt="Avatar" />
+    }
+    // Fallback to first letter of username/nickname
+    const firstLetter = user?.nickname?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'
+    return (
+      <div className="avatar-fallback">
+        {firstLetter}
+      </div>
+    )
+  }
 
   const handleOpenSmallSearchInput = () => {
     let win = window.innerWidth;
@@ -26,7 +68,7 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
       return
     }
     document.getElementById('bi_search_main').type = 'button'
-    setSmallSearch(true)
+    setOpenSmallSearch(true)
   }
 
   const handleSearchSubmit = async (value, last_id, e) => {
@@ -94,7 +136,7 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
       {
         openSmallSearch ? (
           <form className='input-div' onSubmit={(e) => handleSearchSubmit(search, null, e)}>
-            <button className='exit-search-input-btn' type='button' onClick={() => setSmallSearch(false)}>
+            <button className='exit-search-input-btn' type='button' onClick={() => setOpenSmallSearch(false)}>
               <i className='bi bi-arrow-left-short'></i>
             </button>
             <input type="text" placeholder="Qidirish" className="search-input" value={search} onChange={(e) => handleSearchChange(e.target.value)}
@@ -120,7 +162,7 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
               <div>
                 <ThemeButton closeMobileMenu={closeMobileMenu} themeIcon={themeIcon} toggleTheme={toggleTheme} themeLabel={''}></ThemeButton>
                 <Link to={'/profile'}>
-                  <img src={profile} alt="" />
+                  {getAvatarDisplay()}
                 </Link>
               </div>
             </div>

@@ -49,7 +49,6 @@ function App() {
 
 function AppContent() {
   let { token, role } = useContext(AuthContext);
-  console.log('role=>', role);
 
   return (
     <>

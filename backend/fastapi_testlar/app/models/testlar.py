@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, Text, ForeignKey, Index
+from sqlalchemy import Column, JSON, Integer, String, Boolean, DateTime, func, Text, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from ..base import Base
 
@@ -77,3 +77,17 @@ class TestlarHashtag(Base):
     )
     tag = Column(Boolean, default=False)
     test = relationship("Testlar", back_populates="testlar_hashtag")
+
+class Natijalar(Base):
+    __tablename__ = "myapp_natijalar"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False)
+    test_id = Column(Integer, ForeignKey("myapp_testlar.id", ondelete="CASCADE"))
+    sum_son = Column(Integer, default=0)
+    true_son = Column(Integer, default=0)
+    false_son = Column(Integer, default=0)
+    answer = Column(JSON, nullable=True)
+    isfinish = Column(Boolean, default=False)
+    created = Column(DateTime, default=func.now())
+    isfinish = Column(Boolean, default=False)
+    created = Column(DateTime, default=func.now())

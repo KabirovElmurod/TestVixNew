@@ -8,6 +8,20 @@
 @import './home_user';
 @import './show_test';
 @import './finish_test';
+@import './profile';
+
+
+.guruhlar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+
+    @media (max-width: 768px) {
+        padding: 15px;
+    }
+
+    @import './guruhlar';
+}
 
 .aloqa_cont {
     @import './aloqa';

@@ -1,5 +1,8 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSearchCon } from '../../context/SearchContext'
+import { getUserStats } from '../../api/profile'
+import { getTestGet } from '../../api/request_testlar'
+import { getUserResults } from '../../api/profile'
 
 const popularTopics = [
   { label: 'Matematika', value: 1290 },
@@ -16,9 +19,57 @@ const popularTopics = [
 
 export default function HomeUser() {
   const { searchText, setSearchText } = useSearchCon()
+  const [stats, setStats] = useState(null)
+  const [userTests, setUserTests] = useState([])
+  const [recentResults, setRecentResults] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsRes, testsRes, resultsRes] = await Promise.all([
+          getUserStats(),
+          getTestGet(),
+          getUserResults(0, 5)
+        ])
+        
+        if (statsRes.status) {
+          setStats(statsRes.stats)
+        }
+        
+        if (Array.isArray(testsRes)) {
+          setUserTests(testsRes.slice(0, 3))
+        }
+        
+        if (resultsRes.status && resultsRes.results) {
+          setRecentResults(resultsRes.results.slice(0, 3))
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const handleSearchChange = (event) => {
     setSearchText({ text: event.target.value, submit: searchText.submit })
+  }
+
+  const handleTopicClick = (topic) => {
+    setSearchText({ text: topic, submit: true })
+  }
+
+  if (loading) {
+    return (
+      <div className="home-user-page">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+          <p>Yuklanmoqda...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -48,18 +99,18 @@ export default function HomeUser() {
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-label">Testlarim soni</div>
-                <div className="stat-value">32</div>
-                <div className="stat-detail">Oxirgi 30 kun ichida</div>
+                <div className="stat-value">{stats?.test_count || 0}</div>
+                <div className="stat-detail">Jami yaratilgan testlar</div>
               </div>
               <div className="stat-card">
                 <div className="stat-label">O'rtacha natija</div>
-                <div className="stat-value">84%</div>
+                <div className="stat-value">{stats?.avg_score || 0}%</div>
                 <div className="stat-detail">Barcha testlar bo'yicha o'rtacha natija</div>
               </div>
               <div className="stat-card">
-                <div className="stat-label">Saqlangan testlar</div>
-                <div className="stat-value">14</div>
-                <div className="stat-detail">Tezkor kirish uchun tayyor</div>
+                <div className="stat-label">Test ishlashlar</div>
+                <div className="stat-value">{stats?.result_count || 0}</div>
+                <div className="stat-detail">Jami test ishlashlar soni</div>
               </div>
             </div>
           </div>
@@ -71,63 +122,46 @@ export default function HomeUser() {
                 <p>Tezkor amallar va bloklar orqali ishlar tartibda bo'ladi.</p>
               </div>
               <div className="panel-actions">
-                <button className="panel-btn">Saqlangan testlar</button>
                 <button className="panel-btn primary">Yangi test qo'shish</button>
               </div>
             </div>
 
             <div className="blocks-grid">
               <div className="block-card">
-                <h3>Ishlangan testlar ro'yhati</h3>
+                <h3>Mening testlarim</h3>
                 <div className="block-list">
-                  <div className="block-item">
-                    <span>Matematika 1</span>
-                    <small>12 savol</small>
-                  </div>
-                  <div className="block-item">
-                    <span>Fizika tezkor test</span>
-                    <small>8 savol</small>
-                  </div>
-                  <div className="block-item">
-                    <span>Ingliz tili 2</span>
-                    <small>20 savol</small>
-                  </div>
+                  {userTests.length > 0 ? (
+                    userTests.map((test, index) => (
+                      <div key={index} className="block-item">
+                        <span>{test.nom}</span>
+                        <small>{test.savollar_soni || 0} savol</small>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="block-item">
+                      <span>Hali test yaratilmagan</span>
+                      <small>Test qo'shish tugmasini bosing</small>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="block-card">
-                <h3>Saqlangan testlar</h3>
+                <h3>Oxirgi natijalarim</h3>
                 <div className="block-list">
-                  <div className="block-item">
-                    <span>Test reja</span>
-                    <small>Sinfga tayyor</small>
-                  </div>
-                  <div className="block-item">
-                    <span>Yozma test</span>
-                    <small>Ertaga topshirish</small>
-                  </div>
-                  <div className="block-item">
-                    <span>Amaliy mashqlar</span>
-                    <small>Qo'shimcha savollar</small>
-                  </div>
-                </div>
-              </div>
-
-              <div className="block-card">
-                <h3>Yana nima qo'shish mumkin?</h3>
-                <div className="block-list">
-                  <div className="block-item">
-                    <span>Test vaqtini sozlash</span>
-                    <small>Yangi funksiya</small>
-                  </div>
-                  <div className="block-item">
-                    <span>Natija tahlili</span>
-                    <small>Grafiklar bilan</small>
-                  </div>
-                  <div className="block-item">
-                    <span>Top 10 mavzular</span>
-                    <small>Ko'p qidirilganlar</small>
-                  </div>
+                  {recentResults.length > 0 ? (
+                    recentResults.map((result, index) => (
+                      <div key={index} className="block-item">
+                        <span>Test #{result.test_id}</span>
+                        <small>{result.score}% - {result.true_son}/{result.sum_son}</small>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="block-item">
+                      <span>Hali natija yo'q</span>
+                      <small>Test ishlang</small>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -144,7 +178,7 @@ export default function HomeUser() {
 
           <div className="tag-list">
             {popularTopics.map((topic, index) => (
-              <div key={topic.label} className="tag-card">
+              <div key={topic.label} className="tag-card" onClick={() => handleTopicClick(topic.label)} style={{ cursor: 'pointer' }}>
                 <span>{index + 1}. {topic.label}</span>
                 <small>{topic.value} ta qidiruv</small>
               </div>

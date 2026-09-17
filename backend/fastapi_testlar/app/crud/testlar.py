@@ -11,7 +11,7 @@ from ...app.crud.func import (
 # import fuzzy
 from sqlalchemy import distinct
 import json
-from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar, Hashtag
+from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar, Hashtag,Natijalar
 from ..schemas.testlar import TestlarCreate, TestlarUpdate, SearchTestRequest, GetPublicTestlarRequest
 from ..redis.redis import get_redis
 from redis.commands.search.query import Query, NumericFilter
@@ -791,6 +791,7 @@ async def delete_testlar(db: AsyncSession, key: str, id: str | int, user_id: int
     )
     await db.execute(delete(Savollar).where(Savollar.test_id == id))
     await db.execute(delete(TestlarHashtag).where(TestlarHashtag.test_id == id))
+    await db.execute(delete(Natijalar).where(Natijalar.test_id == id))
     result = await db.execute(delete(Testlar).where((Testlar.test_key == key) & (Testlar.user_id == user_id) & (Testlar.id == id)))
     # Invalidate search cache when test is deleted
     # await redis.delete_by_pattern("search:*")

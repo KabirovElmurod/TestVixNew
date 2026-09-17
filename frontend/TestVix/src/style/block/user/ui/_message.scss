@@ -48,13 +48,16 @@
 
 .message-content {
     display: flex;
-    align-items: center;
+    // flex-direction: column;
+    // background-color: red;
+    // align-items: left;
+    // width: 100%;
     padding: 14px 18px;
     gap: 12px;
 }
 
 .message-text {
-    flex: 1;
+    // flex: 1;
     font-size: 15px;
     font-weight: 600;
 }
@@ -84,6 +87,7 @@
         transform: translateY(-100%);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -95,6 +99,7 @@
         transform: translateY(0);
         opacity: 1;
     }
+
     to {
         transform: translateY(-120%);
         opacity: 0;

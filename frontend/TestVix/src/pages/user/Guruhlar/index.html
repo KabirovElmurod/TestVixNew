@@ -1,0 +1,2737 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TestHub — Group & TestRoom</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #f5f7fb;
+            --surface: #ffffff;
+            --surface-2: #f8faff;
+            --border: #e7eaf0;
+            --text: #172033;
+            --muted: #7b8497;
+            --primary: #635bff;
+            --primary-dark: #5148ed;
+            --primary-soft: #eeecff;
+            --green: #16a67a;
+            --green-soft: #e6f8f2;
+            --orange: #f59e0b;
+            --orange-soft: #fff6df;
+            --red: #ef5350;
+            --red-soft: #fff0f0;
+            --shadow: 0 12px 40px rgba(25, 35, 60, .07);
+            --shadow-lg: 0 25px 80px rgba(25, 35, 60, .14);
+            --radius: 20px;
+        }
+
+        body {
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            background:
+                radial-gradient(circle at 80% -10%, rgba(99, 91, 255, .09), transparent 30%),
+                var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* =========================
+           APP
+        ========================== */
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================== */
+
+        .sidebar {
+            width: 255px;
+            min-height: 100vh;
+            background: rgba(255, 255, 255, .88);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            padding: 24px 16px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 20;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 4px 10px 28px;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #726bff, #5148ed);
+            color: white;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            box-shadow: 0 8px 22px rgba(99, 91, 255, .28);
+        }
+
+        .brand-text {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -.5px;
+        }
+
+        .brand-text span {
+            color: var(--primary);
+        }
+
+        .nav-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: #a1a8b7;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 0 12px 9px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .nav-item {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 13px;
+            font-size: 14px;
+            font-weight: 650;
+            text-align: left;
+            transition: .2s ease;
+        }
+
+        .nav-item:hover {
+            background: #f4f4ff;
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 99px;
+            background: var(--primary);
+            color: white;
+            display: grid;
+            place-items: center;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .sidebar-bottom {
+            position: absolute;
+            bottom: 20px;
+            left: 16px;
+            right: 16px;
+        }
+
+        .profile-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: #fff;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #ff8a65, #ff5f6d);
+        }
+
+        .profile-name {
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .profile-role {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        /* =========================
+           MAIN
+        ========================== */
+
+        .main {
+            width: calc(100% - 255px);
+            margin-left: 255px;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            height: 76px;
+            padding: 0 34px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .72);
+            backdrop-filter: blur(18px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .page-heading h1 {
+            font-size: 21px;
+            letter-spacing: -.6px;
+        }
+
+        .page-heading p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .icon-btn {
+            width: 39px;
+            height: 39px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--muted);
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            transition: .2s;
+        }
+
+        .icon-btn:hover {
+            color: var(--primary);
+            border-color: #d9d6ff;
+        }
+
+        .content {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 30px 34px 50px;
+        }
+
+        /* =========================
+           GROUP HEADER
+        ========================== */
+
+        .group-layout {
+            display: grid;
+            grid-template-columns: 235px minmax(0, 1fr);
+            gap: 24px;
+        }
+
+        .groups-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            height: fit-content;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 13px;
+        }
+
+        .panel-title h3 {
+            font-size: 13px;
+        }
+
+        .count {
+            font-size: 10px;
+            color: var(--muted);
+            background: #f1f3f7;
+            padding: 4px 7px;
+            border-radius: 99px;
+        }
+
+        .group-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .group-item {
+            padding: 10px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .group-item:hover {
+            background: #f7f7ff;
+        }
+
+        .group-item.active {
+            background: var(--primary-soft);
+        }
+
+        .group-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .group-info {
+            min-width: 0;
+        }
+
+        .group-name {
+            font-size: 12px;
+            font-weight: 750;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .group-meta {
+            color: var(--muted);
+            font-size: 10px;
+            margin-top: 2px;
+        }
+
+        /* =========================
+           FEED
+        ========================== */
+
+        .feed {
+            min-width: 0;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 19px;
+        }
+
+        .feed-title h2 {
+            font-size: 18px;
+            letter-spacing: -.4px;
+        }
+
+        .feed-title p {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .share-test {
+            border: 0;
+            background: var(--primary);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 750;
+            box-shadow: 0 8px 18px rgba(99, 91, 255, .22);
+        }
+
+        /* Telegram-like post */
+
+        .post {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 19px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .post-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 17px 11px;
+        }
+
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .post-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .author-name {
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .post-time {
+            color: var(--muted);
+            font-size: 9px;
+            margin-top: 2px;
+        }
+
+        .more {
+            color: #a0a7b5;
+            font-size: 19px;
+            line-height: 1;
+        }
+
+        .post-description {
+            padding: 0 17px 12px;
+            color: #4e586b;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        /* =========================
+           TEST CARD
+        ========================== */
+
+        .test-card {
+            margin: 0 12px 12px;
+            border: 1px solid #e7e8f3;
+            background:
+                linear-gradient(135deg, #fbfbff, #f7f8fd);
+            border-radius: 17px;
+            overflow: hidden;
+        }
+
+        .test-card-main {
+            padding: 16px;
+        }
+
+        .test-card-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .subject-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--primary);
+            background: var(--primary-soft);
+            padding: 5px 8px;
+            border-radius: 7px;
+            font-size: 9px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .test-title {
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1.3;
+            letter-spacing: -.25px;
+        }
+
+        .public-badge {
+            padding: 5px 8px;
+            border-radius: 7px;
+            font-size: 9px;
+            font-weight: 750;
+            white-space: nowrap;
+        }
+
+        .public-badge.public {
+            color: var(--green);
+            background: var(--green-soft);
+        }
+
+        .public-badge.private {
+            color: var(--orange);
+            background: var(--orange-soft);
+        }
+
+        .test-description {
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.55;
+            margin-top: 8px;
+        }
+
+        .test-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            margin-top: 15px;
+            border-top: 1px solid var(--border);
+            padding-top: 13px;
+            gap: 8px;
+        }
+
+        .stat-label {
+            font-size: 8px;
+            color: #9aa2b2;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+
+        .stat-value {
+            font-size: 10px;
+            font-weight: 750;
+            color: #3d4657;
+            margin-top: 3px;
+        }
+
+        .test-card-footer {
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .test-id {
+            color: #a1a7b5;
+            font-family: monospace;
+            font-size: 9px;
+        }
+
+        .test-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .small-btn {
+            border: 1px solid var(--border);
+            background: white;
+            color: #626b7d;
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 750;
+        }
+
+        .small-btn.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .post-footer {
+            padding: 7px 17px 13px;
+            display: flex;
+            align-items: center;
+            gap: 17px;
+            color: #8e96a6;
+            font-size: 10px;
+        }
+
+        .post-footer span {
+            cursor: pointer;
+        }
+
+        /* =========================
+           TEST ROOM
+        ========================== */
+
+        .room-page {
+            display: none;
+        }
+
+        .room-page.active {
+            display: block;
+        }
+
+        .rooms-page {
+            display: none;
+        }
+
+        .rooms-page.active {
+            display: block;
+        }
+
+        .room-hero {
+            background:
+                linear-gradient(135deg, #6058f5, #8078ff);
+            color: white;
+            border-radius: 22px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+        }
+
+        .room-hero::after {
+            content: "";
+            position: absolute;
+            width: 230px;
+            height: 230px;
+            right: -80px;
+            top: -100px;
+            border-radius: 50%;
+            border: 40px solid rgba(255, 255, 255, .08);
+        }
+
+        .room-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .room-label {
+            display: inline-flex;
+            padding: 5px 8px;
+            background: rgba(255, 255, 255, .15);
+            border: 1px solid rgba(255, 255, 255, .15);
+            border-radius: 7px;
+            font-size: 9px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .room-hero h2 {
+            font-size: 22px;
+            letter-spacing: -.6px;
+        }
+
+        .room-hero p {
+            opacity: .78;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .room-hero-bottom {
+            margin-top: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .room-owner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+        }
+
+        .hero-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background: rgba(255, 255, 255, .2);
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 9px;
+        }
+
+        .leave-btn {
+            border: 1px solid rgba(255, 255, 255, .25);
+            background: rgba(255, 255, 255, .12);
+            color: white;
+            padding: 9px 13px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 750;
+        }
+
+        .room-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 285px;
+            gap: 20px;
+        }
+
+        .room-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .room-card-title {
+            padding: 15px 17px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .room-card-title h3 {
+            font-size: 12px;
+        }
+
+        .room-card-body {
+            padding: 16px;
+        }
+
+        /* messages */
+
+        .messages {
+            min-height: 380px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding: 17px;
+            background: #f7f8fc;
+            border-radius: 18px 18px 0 0;
+        }
+
+        .message {
+            display: flex;
+            gap: 9px;
+            margin-bottom: 15px;
+            align-items: flex-end;
+        }
+
+        .message.me {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 29px;
+            height: 29px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #a78bfa, #6366f1);
+            color: white;
+            display: grid;
+            place-items: center;
+            font-size: 8px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .message.me .message-avatar {
+            background: linear-gradient(135deg, #22c55e, #0ea5a4);
+        }
+
+        .bubble {
+            max-width: 72%;
+            background: white;
+            border: 1px solid #e8eaf0;
+            padding: 9px 11px;
+            border-radius: 13px 13px 13px 4px;
+            box-shadow: 0 3px 10px rgba(30, 40, 70, .035);
+        }
+
+        .message.me .bubble {
+            border-radius: 13px 13px 4px 13px;
+            background: #eeecff;
+            border-color: #dedaff;
+        }
+
+        .bubble-author {
+            font-size: 9px;
+            color: var(--primary);
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+
+        .bubble-text {
+            font-size: 10px;
+            color: #515b6e;
+            line-height: 1.45;
+        }
+
+        .bubble-time {
+            text-align: right;
+            color: #a2a9b6;
+            font-size: 7px;
+            margin-top: 4px;
+        }
+
+        .message-input {
+            padding: 11px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .message-input input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid var(--border);
+            outline: none;
+            background: #f7f8fb;
+            padding: 10px 12px;
+            border-radius: 11px;
+            font-size: 10px;
+        }
+
+        .message-input input:focus {
+            border-color: #c7c3ff;
+            box-shadow: 0 0 0 3px rgba(99, 91, 255, .07);
+        }
+
+        .send-btn {
+            width: 40px;
+            border: 0;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        /* Room test info */
+
+        .room-test {
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fafaff, #f7f8fd);
+        }
+
+        .room-test-subject {
+            color: var(--primary);
+            font-size: 9px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .room-test h4 {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .room-test p {
+            color: var(--muted);
+            font-size: 9px;
+            line-height: 1.5;
+            margin-top: 5px;
+        }
+
+        .room-test-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+            margin-top: 12px;
+        }
+
+        .meta-box {
+            padding: 8px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+        }
+
+        .meta-box small {
+            display: block;
+            color: #9ca4b3;
+            font-size: 7px;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .meta-box strong {
+            font-size: 9px;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .start-test-btn {
+            width: 100%;
+            border: 0;
+            background: var(--primary);
+            color: white;
+            border-radius: 11px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .start-test-btn.disabled {
+            background: #e8eaf0;
+            color: #a1a8b6;
+            cursor: not-allowed;
+        }
+
+        /* Members */
+
+        .members {
+            margin-top: 15px;
+        }
+
+        .member {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 0;
+        }
+
+        .member-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            background: #ecebff;
+            color: var(--primary);
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .member-name {
+            font-size: 9px;
+            font-weight: 750;
+        }
+
+        .member-role {
+            font-size: 7px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .owner-tag {
+            margin-left: auto;
+            color: var(--primary);
+            background: var(--primary-soft);
+            padding: 3px 5px;
+            border-radius: 5px;
+            font-size: 7px;
+            font-weight: 800;
+        }
+
+        /* =========================
+           ROOM LIST
+        ========================== */
+
+        .rooms-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .rooms-head h2 {
+            font-size: 19px;
+        }
+
+        .rooms-head p {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .create-room {
+            border: 0;
+            color: white;
+            background: var(--primary);
+            padding: 10px 14px;
+            border-radius: 11px;
+            font-size: 10px;
+            font-weight: 800;
+            box-shadow: 0 7px 18px rgba(99, 91, 255, .2);
+        }
+
+        .room-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .room-list-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+            transition: .2s;
+        }
+
+        .room-list-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 17px 45px rgba(25, 35, 60, .1);
+        }
+
+        .room-card-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .room-icon {
+            width: 39px;
+            height: 39px;
+            border-radius: 12px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            display: grid;
+            place-items: center;
+            font-size: 16px;
+        }
+
+        .room-status {
+            color: var(--green);
+            background: var(--green-soft);
+            height: fit-content;
+            padding: 5px 7px;
+            border-radius: 7px;
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .room-list-card h3 {
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        .room-list-card p {
+            color: var(--muted);
+            font-size: 9px;
+            margin-top: 4px;
+        }
+
+        .room-test-mini {
+            margin-top: 13px;
+            padding: 10px;
+            background: #f7f8fc;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .room-test-mini strong {
+            display: block;
+            font-size: 9px;
+        }
+
+        .room-test-mini span {
+            display: block;
+            color: var(--muted);
+            font-size: 8px;
+            margin-top: 3px;
+        }
+
+        .room-card-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 13px;
+        }
+
+        .room-members {
+            display: flex;
+            align-items: center;
+        }
+
+        .room-members .member-avatar {
+            margin-left: -5px;
+            border: 2px solid white;
+        }
+
+        .room-members .member-avatar:first-child {
+            margin-left: 0;
+        }
+
+        .member-count {
+            color: var(--muted);
+            font-size: 8px;
+            margin-left: 7px;
+        }
+
+        .join-btn {
+            border: 1px solid #dedbff;
+            color: var(--primary);
+            background: #faf9ff;
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .locked {
+            color: var(--orange);
+            background: var(--orange-soft);
+        }
+
+        /* =========================
+           MODAL
+        ========================== */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 20, 35, .45);
+            backdrop-filter: blur(7px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 390px;
+            background: white;
+            border-radius: 22px;
+            padding: 23px;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn .2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .modal-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: var(--primary-soft);
+            color: var(--primary);
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+
+        .modal h3 {
+            font-size: 17px;
+        }
+
+        .modal p {
+            color: var(--muted);
+            font-size: 10px;
+            line-height: 1.5;
+            margin-top: 5px;
+        }
+
+        .password-input {
+            width: 100%;
+            margin-top: 17px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            outline: none;
+            font-size: 12px;
+        }
+
+        .password-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 91, 255, .07);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 7px;
+            margin-top: 15px;
+        }
+
+        .modal-btn {
+            padding: 9px 13px;
+            border-radius: 9px;
+            font-size: 10px;
+            font-weight: 750;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--muted);
+        }
+
+        .modal-btn.confirm {
+            color: white;
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+
+        /* =========================
+           EMPTY
+        ========================== */
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            width: 55px;
+            height: 55px;
+            margin: auto;
+            border-radius: 17px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            display: grid;
+            place-items: center;
+            font-size: 21px;
+        }
+
+        .empty h3 {
+            color: var(--text);
+            font-size: 14px;
+            margin-top: 13px;
+        }
+
+        .empty p {
+            font-size: 10px;
+            margin-top: 5px;
+        }
+
+        /* =========================
+           TOAST
+        ========================== */
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            background: #202535;
+            color: white;
+            padding: 11px 14px;
+            border-radius: 11px;
+            font-size: 10px;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: .25s;
+            z-index: 200;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 950px) {
+            .sidebar {
+                width: 70px;
+                padding: 18px 9px;
+            }
+
+            .brand {
+                justify-content: center;
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .brand-text,
+            .nav-title,
+            .nav-item span:not(.nav-icon),
+            .profile-mini>div:not(.avatar) {
+                display: none;
+            }
+
+            .nav-item {
+                justify-content: center;
+                padding: 12px;
+            }
+
+            .nav-badge {
+                display: none;
+            }
+
+            .profile-mini {
+                justify-content: center;
+                padding: 7px;
+            }
+
+            .main {
+                width: calc(100% - 70px);
+                margin-left: 70px;
+            }
+
+            .group-layout {
+                grid-template-columns: 190px minmax(0, 1fr);
+            }
+
+            .room-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .topbar {
+                padding: 0 18px;
+            }
+
+            .content {
+                padding: 20px 15px 40px;
+            }
+
+            .group-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .groups-panel {
+                display: none;
+            }
+
+            .room-list {
+                grid-template-columns: 1fr;
+            }
+
+            .test-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-heading p {
+                display: none;
+            }
+
+            .top-actions .icon-btn:first-child {
+                display: none;
+            }
+
+            .feed-header {
+                align-items: center;
+            }
+
+            .feed-title h2 {
+                font-size: 16px;
+            }
+
+            .share-test {
+                padding: 8px 10px;
+            }
+
+            .test-card {
+                margin-left: 8px;
+                margin-right: 8px;
+            }
+
+            .post-top,
+            .post-description {
+                padding-left: 13px;
+                padding-right: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+        <aside class="sidebar">
+
+            <div class="brand">
+                <div class="brand-icon">T</div>
+                <div class="brand-text">Test<span>Hub</span></div>
+            </div>
+
+            <div class="nav-title">Asosiy</div>
+
+            <nav class="nav">
+
+                <button class="nav-item active" data-page="groupPage">
+                    <span class="nav-icon">👥</span>
+                    <span>Group</span>
+                    <span class="nav-badge">3</span>
+                </button>
+
+                <button class="nav-item" data-page="roomsPage">
+                    <span class="nav-icon">⚡</span>
+                    <span>TestRoom</span>
+                </button>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="profile-mini">
+                    <div class="avatar">AS</div>
+                    <div>
+                        <div class="profile-name">Ali Student</div>
+                        <div class="profile-role">Student</div>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+
+        <!-- =========================
+         MAIN
+    ========================== -->
+
+        <main class="main">
+
+            <header class="topbar">
+
+                <div class="page-heading">
+                    <h1 id="pageTitle">Group</h1>
+                    <p id="pageSubtitle">
+                        Testlarni guruh bilan ulashing va muhokama qiling
+                    </p>
+                </div>
+
+                <div class="top-actions">
+                    <button class="icon-btn">⌕</button>
+                    <button class="icon-btn">⚙</button>
+                </div>
+
+            </header>
+
+
+            <!-- =========================
+             GROUP PAGE
+        ========================== -->
+
+            <section class="content group-page" id="groupPage">
+
+                <div class="group-layout">
+
+                    <!-- Groups -->
+
+                    <aside class="groups-panel">
+
+                        <div class="panel-title">
+                            <h3>Guruhlarim</h3>
+                            <span class="count">3</span>
+                        </div>
+
+                        <div class="group-list">
+
+                            <div class="group-item active">
+                                <div class="group-avatar" style="background:linear-gradient(135deg,#635bff,#887fff)">
+                                    M
+                                </div>
+
+                                <div class="group-info">
+                                    <div class="group-name">Matematika 11-A</div>
+                                    <div class="group-meta">24 a'zo</div>
+                                </div>
+                            </div>
+
+
+                            <div class="group-item">
+                                <div class="group-avatar" style="background:linear-gradient(135deg,#0ea5a4,#22c55e)">
+                                    F
+                                </div>
+
+                                <div class="group-info">
+                                    <div class="group-name">Fizika Abituriyent</div>
+                                    <div class="group-meta">18 a'zo</div>
+                                </div>
+                            </div>
+
+
+                            <div class="group-item">
+                                <div class="group-avatar" style="background:linear-gradient(135deg,#f97316,#fb7185)">
+                                    I
+                                </div>
+
+                                <div class="group-info">
+                                    <div class="group-name">Ingliz tili B2</div>
+                                    <div class="group-meta">32 a'zo</div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+
+                    <!-- Test feed -->
+
+                    <div class="feed">
+
+                        <div class="feed-header">
+
+                            <div class="feed-title">
+                                <h2>Matematika 11-A</h2>
+                                <p>Guruhdagi testlar</p>
+                            </div>
+
+                            <button class="share-test"
+                                onclick="showToast('Test ulashish oynasi backend bilan ulanadi')">
+                                ＋ Test ulashish
+                            </button>
+
+                        </div>
+
+
+                        <!-- TEST POST 1 -->
+
+                        <article class="post">
+
+                            <div class="post-top">
+
+                                <div class="post-author">
+
+                                    <div class="post-avatar" style="background:linear-gradient(135deg,#635bff,#887fff)">
+                                        AS
+                                    </div>
+
+                                    <div>
+                                        <div class="author-name">Ali Student</div>
+                                        <div class="post-time">Bugun, 14:32</div>
+                                    </div>
+
+                                </div>
+
+                                <div class="more">•••</div>
+
+                            </div>
+
+
+                            <div class="post-description">
+                                Bugungi matematika mashg‘uloti uchun yangi test.
+                                Hammaga omad! 📚
+                            </div>
+
+
+                            <!-- Test card -->
+
+                            <div class="test-card">
+
+                                <div class="test-card-main">
+
+                                    <div class="test-card-head">
+
+                                        <div>
+
+                                            <div class="subject-label">
+                                                📐 MATEMATIKA
+                                            </div>
+
+                                            <div class="test-title">
+                                                Algebra — Yakuniy nazorat testi
+                                            </div>
+
+                                        </div>
+
+                                        <div class="public-badge public">
+                                            OMMAVIY
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="test-description">
+                                        Algebraik ifodalar, tenglamalar va
+                                        funksiyalar bo‘yicha yakuniy nazorat.
+                                    </div>
+
+
+                                    <!-- Model fields -->
+
+                                    <div class="test-stats">
+
+                                        <div>
+                                            <div class="stat-label">Fan</div>
+                                            <div class="stat-value">
+                                                Matematika
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div class="stat-label">Vaqt</div>
+                                            <div class="stat-value">
+                                                30 daqiqa
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div class="stat-label">Vaqtli</div>
+                                            <div class="stat-value">
+                                                Ha
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div class="stat-label">Test ID</div>
+                                            <div class="stat-value">
+                                                ALG-2026
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="test-card-footer">
+
+                                    <div class="test-id">
+                                        code: ALG11-7XK2
+                                    </div>
+
+                                    <div class="test-actions">
+
+                                        <button class="small-btn">
+                                            Ko‘rish
+                                        </button>
+
+                                        <button class="small-btn primary"
+                                            onclick="showToast('Testni boshlash backend orqali ishlaydi')">
+                                            Testni ochish
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="post-footer">
+                                <span>♡ 12</span>
+                                <span>💬 4</span>
+                                <span>↗ Ulashish</span>
+                            </div>
+
+                        </article>
+
+
+                        <!-- TEST POST 2 -->
+
+                        <article class="post">
+
+                            <div class="post-top">
+
+                                <div class="post-author">
+
+                                    <div class="post-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">
+                                        MD
+                                    </div>
+
+                                    <div>
+                                        <div class="author-name">Madina Teacher</div>
+                                        <div class="post-time">Kecha, 19:08</div>
+                                    </div>
+
+                                </div>
+
+                                <div class="more">•••</div>
+
+                            </div>
+
+
+                            <div class="post-description">
+                                Ertangi dars uchun ushbu testni ishlab chiqing.
+                            </div>
+
+
+                            <div class="test-card">
+
+                                <div class="test-card-main">
+
+                                    <div class="test-card-head">
+
+                                        <div>
+
+                                            <div class="subject-label">
+                                                🧮 MATEMATIKA
+                                            </div>
+
+                                            <div class="test-title">
+                                                Funksiyalar va grafiklar
+                                            </div>
+
+                                        </div>
+
+                                        <div class="public-badge private">
+                                            YOPIQ
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="test-description">
+                                        Funksiya tushunchasi, aniqlanish sohasi,
+                                        qiymatlar sohasi va grafiklar.
+                                    </div>
+
+
+                                    <div class="test-stats">
+
+                                        <div>
+                                            <div class="stat-label">Fan</div>
+                                            <div class="stat-value">
+                                                Matematika
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div class="stat-label">Vaqt</div>
+                                            <div class="stat-value">
+                                                20 daqiqa
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div class="stat-label">Vaqtli</div>
+                                            <div class="stat-value">
+                                                Ha
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div class="stat-label">Test ID</div>
+                                            <div class="stat-value">
+                                                FUN-8831
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="test-card-footer">
+
+                                    <div class="test-id">
+                                        code: FUN11-PQ91
+                                    </div>
+
+                                    <div class="test-actions">
+
+                                        <button class="small-btn">
+                                            Ko‘rish
+                                        </button>
+
+                                        <button class="small-btn primary">
+                                            Testni ochish
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="post-footer">
+                                <span>♡ 8</span>
+                                <span>💬 2</span>
+                                <span>↗ Ulashish</span>
+                            </div>
+
+                        </article>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+             TEST ROOM LIST
+        ========================== -->
+
+            <section class="content rooms-page" id="roomsPage">
+
+                <div class="rooms-head">
+
+                    <div>
+                        <h2>Mavjud TestRoomlar</h2>
+                        <p>Testni boshqa foydalanuvchilar bilan birga ishlang</p>
+                    </div>
+
+                    <button class="create-room" onclick="showToast('Room yaratish funksiyasi hozircha mavjud emas')">
+                        ＋ Room ochish
+                    </button>
+
+                </div>
+
+
+                <div class="room-list">
+
+                    <!-- ROOM 1 -->
+
+                    <article class="room-list-card">
+
+                        <div class="room-card-head">
+
+                            <div class="room-icon">🔓</div>
+
+                            <div class="room-status">
+                                OCHIQ
+                            </div>
+
+                        </div>
+
+                        <h3>Matematika Battle #24</h3>
+
+                        <p>
+                            Ali Student tomonidan yaratilgan
+                        </p>
+
+
+                        <div class="room-test-mini">
+
+                            <strong>
+                                Algebra — Yakuniy nazorat testi
+                            </strong>
+
+                            <span>
+                                Matematika · 30 daqiqa · Ommaviy
+                            </span>
+
+                        </div>
+
+
+                        <div class="room-card-bottom">
+
+                            <div class="room-members">
+
+                                <div class="member-avatar">AS</div>
+                                <div class="member-avatar" style="background:#e0f2fe;color:#0284c7">
+                                    MD
+                                </div>
+                                <div class="member-avatar" style="background:#dcfce7;color:#16a34a">
+                                    BK
+                                </div>
+
+                                <span class="member-count">
+                                    3/10
+                                </span>
+
+                            </div>
+
+                            <button class="join-btn" onclick="enterRoom(false)">
+                                Kirish →
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <!-- ROOM 2 -->
+
+                    <article class="room-list-card">
+
+                        <div class="room-card-head">
+
+                            <div class="room-icon" style="background:#fff6df;color:#f59e0b">
+                                🔒
+                            </div>
+
+                            <div class="room-status locked">
+                                PAROLLI
+                            </div>
+
+                        </div>
+
+                        <h3>Funksiya Master Room</h3>
+
+                        <p>
+                            Madina Teacher tomonidan yaratilgan
+                        </p>
+
+
+                        <div class="room-test-mini">
+
+                            <strong>
+                                Funksiyalar va grafiklar
+                            </strong>
+
+                            <span>
+                                Matematika · 20 daqiqa · Yopiq
+                            </span>
+
+                        </div>
+
+
+                        <div class="room-card-bottom">
+
+                            <div class="room-members">
+
+                                <div class="member-avatar" style="background:#fef3c7;color:#d97706">
+                                    MT
+                                </div>
+
+                                <div class="member-avatar" style="background:#fce7f3;color:#db2777">
+                                    AZ
+                                </div>
+
+                                <span class="member-count">
+                                    2/8
+                                </span>
+
+                            </div>
+
+                            <button class="join-btn" onclick="openPasswordModal()">
+                                Parol bilan →
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <!-- ROOM 3 -->
+
+                    <article class="room-list-card">
+
+                        <div class="room-card-head">
+
+                            <div class="room-icon">🔓</div>
+
+                            <div class="room-status">
+                                OCHIQ
+                            </div>
+
+                        </div>
+
+                        <h3>Tezkor Test #08</h3>
+
+                        <p>
+                            Bekzod tomonidan yaratilgan
+                        </p>
+
+
+                        <div class="room-test-mini">
+
+                            <strong>
+                                Trigonometriya asoslari
+                            </strong>
+
+                            <span>
+                                Matematika · Vaqtsiz · Ommaviy
+                            </span>
+
+                        </div>
+
+
+                        <div class="room-card-bottom">
+
+                            <div class="room-members">
+
+                                <div class="member-avatar" style="background:#ede9fe;color:#7c3aed">
+                                    BK
+                                </div>
+
+                                <span class="member-count">
+                                    1/6
+                                </span>
+
+                            </div>
+
+                            <button class="join-btn" onclick="enterRoom(false)">
+                                Kirish →
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <!-- ROOM 4 -->
+
+                    <article class="room-list-card">
+
+                        <div class="room-card-head">
+
+                            <div class="room-icon" style="background:#fff6df;color:#f59e0b">
+                                🔒
+                            </div>
+
+                            <div class="room-status locked">
+                                PAROLLI
+                            </div>
+
+                        </div>
+
+                        <h3>Abituriyentlar Room</h3>
+
+                        <p>
+                            Sardor tomonidan yaratilgan
+                        </p>
+
+
+                        <div class="room-test-mini">
+
+                            <strong>
+                                Algebra va geometriya
+                            </strong>
+
+                            <span>
+                                Matematika · 45 daqiqa · Yopiq
+                            </span>
+
+                        </div>
+
+
+                        <div class="room-card-bottom">
+
+                            <div class="room-members">
+
+                                <div class="member-avatar" style="background:#fef2f2;color:#dc2626">
+                                    SR
+                                </div>
+
+                                <div class="member-avatar" style="background:#ecfeff;color:#0891b2">
+                                    JK
+                                </div>
+
+                                <span class="member-count">
+                                    2/12
+                                </span>
+
+                            </div>
+
+                            <button class="join-btn" onclick="openPasswordModal()">
+                                Parol bilan →
+                            </button>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+             ROOM INSIDE
+        ========================== -->
+
+            <section class="content room-page" id="roomPage">
+
+                <div class="room-hero">
+
+                    <div class="room-hero-content">
+
+                        <div class="room-label">
+                            ⚡ TESTROOM · OCHIQ ROOM
+                        </div>
+
+                        <h2>Matematika Battle #24</h2>
+
+                        <p>
+                            Birgalikda test ishlash va natijalarni solishtirish
+                        </p>
+
+
+                        <div class="room-hero-bottom">
+
+                            <div class="room-owner">
+
+                                <div class="hero-avatar">
+                                    AS
+                                </div>
+
+                                <div>
+                                    Room egasi: <strong>Ali Student</strong>
+                                </div>
+
+                            </div>
+
+                            <button class="leave-btn" onclick="leaveRoom()">
+                                Chiqish
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="room-grid">
+
+                    <!-- CHAT -->
+
+                    <div class="room-card">
+
+                        <div class="room-card-title">
+                            <h3>Room chat</h3>
+                            <span class="count">3 a'zo</span>
+                        </div>
+
+
+                        <div class="messages" id="messages">
+
+                            <div class="message">
+
+                                <div class="message-avatar">
+                                    AS
+                                </div>
+
+                                <div class="bubble">
+
+                                    <div class="bubble-author">
+                                        Ali Student
+                                    </div>
+
+                                    <div class="bubble-text">
+                                        Hammaga omad! Testni boshlashga
+                                        tayyormizmi? 🚀
+                                    </div>
+
+                                    <div class="bubble-time">
+                                        14:35
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="message">
+
+                                <div class="message-avatar" style="background:linear-gradient(135deg,#0ea5e9,#6366f1)">
+                                    MD
+                                </div>
+
+                                <div class="bubble">
+
+                                    <div class="bubble-author">
+                                        Madina
+                                    </div>
+
+                                    <div class="bubble-text">
+                                        Ha, men tayyorman. 👍
+                                    </div>
+
+                                    <div class="bubble-time">
+                                        14:36
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="message me">
+
+                                <div class="message-avatar">
+                                    AS
+                                </div>
+
+                                <div class="bubble">
+
+                                    <div class="bubble-author">
+                                        Siz
+                                    </div>
+
+                                    <div class="bubble-text">
+                                        Men ham tayyorman!
+                                    </div>
+
+                                    <div class="bubble-time">
+                                        14:37
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="message-input">
+
+                            <input id="messageInput" type="text" placeholder="Xabar yozing..."
+                                onkeydown="handleMessage(event)">
+
+                            <button class="send-btn" onclick="sendMessage()">
+                                ↑
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- RIGHT SIDEBAR -->
+
+                    <aside>
+
+                        <!-- Test -->
+
+                        <div class="room-card">
+
+                            <div class="room-card-title">
+                                <h3>Test haqida</h3>
+                            </div>
+
+                            <div class="room-card-body">
+
+                                <div class="room-test">
+
+                                    <div class="room-test-subject">
+                                        MATEMATIKA
+                                    </div>
+
+                                    <h4>
+                                        Algebra — Yakuniy nazorat testi
+                                    </h4>
+
+                                    <p>
+                                        Algebraik ifodalar, tenglamalar va
+                                        funksiyalar bo‘yicha yakuniy nazorat.
+                                    </p>
+
+
+                                    <div class="room-test-meta">
+
+                                        <div class="meta-box">
+                                            <small>Fan</small>
+                                            <strong>Matematika</strong>
+                                        </div>
+
+                                        <div class="meta-box">
+                                            <small>Vaqt</small>
+                                            <strong>30 min</strong>
+                                        </div>
+
+                                        <div class="meta-box">
+                                            <small>Test ID</small>
+                                            <strong>ALG-2026</strong>
+                                        </div>
+
+                                        <div class="meta-box">
+                                            <small>Vaqtli</small>
+                                            <strong>Ha</strong>
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- Owner only -->
+
+                                    <button class="start-test-btn"
+                                        onclick="showToast('Test boshlandi! Backend bilan ulanadi')">
+                                        ▶ Testni boshlash
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Members -->
+
+                        <div class="room-card members">
+
+                            <div class="room-card-title">
+
+                                <h3>A'zolar</h3>
+
+                                <span class="count">
+                                    3 / 10
+                                </span>
+
+                            </div>
+
+
+                            <div class="room-card-body">
+
+                                <div class="member">
+
+                                    <div class="member-avatar">
+                                        AS
+                                    </div>
+
+                                    <div>
+                                        <div class="member-name">
+                                            Ali Student
+                                        </div>
+                                        <div class="member-role">
+                                            Room yaratuvchisi
+                                        </div>
+                                    </div>
+
+                                    <span class="owner-tag">
+                                        EGASI
+                                    </span>
+
+                                </div>
+
+
+                                <div class="member">
+
+                                    <div class="member-avatar" style="background:#e0f2fe;color:#0284c7">
+                                        MD
+                                    </div>
+
+                                    <div>
+                                        <div class="member-name">
+                                            Madina
+                                        </div>
+                                        <div class="member-role">
+                                            Ishtirokchi
+                                        </div>
+                                    </div>
+
+                                </div>
+
+
+                                <div class="member">
+
+                                    <div class="member-avatar" style="background:#dcfce7;color:#16a34a">
+                                        BK
+                                    </div>
+
+                                    <div>
+                                        <div class="member-name">
+                                            Bekzod
+                                        </div>
+                                        <div class="member-role">
+                                            Ishtirokchi
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- =========================
+     PASSWORD MODAL
+========================== -->
+
+    <div class="modal-overlay" id="passwordModal">
+
+        <div class="modal">
+
+            <div class="modal-icon">
+                🔐
+            </div>
+
+            <h3>Room parolini kiriting</h3>
+
+            <p>
+                Ushbu TestRoom yopiq. Roomga qo‘shilish uchun
+                yaratuvchi bergan parolni kiriting.
+            </p>
+
+            <input class="password-input" id="roomPassword" type="password" placeholder="Room paroli">
+
+            <div class="modal-actions">
+
+                <button class="modal-btn" onclick="closePasswordModal()">
+                    Bekor qilish
+                </button>
+
+                <button class="modal-btn confirm" onclick="checkPassword()">
+                    Roomga kirish
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- TOAST -->
+
+    <div class="toast" id="toast"></div>
+
+
+    <script>
+
+        /* =========================
+           NAVIGATION
+        ========================== */
+
+        const navItems = document.querySelectorAll(".nav-item");
+
+        const groupPage = document.getElementById("groupPage");
+        const roomsPage = document.getElementById("roomsPage");
+        const roomPage = document.getElementById("roomPage");
+
+        const pageTitle = document.getElementById("pageTitle");
+        const pageSubtitle = document.getElementById("pageSubtitle");
+
+        navItems.forEach(item => {
+
+            item.addEventListener("click", () => {
+
+                navItems.forEach(nav => {
+                    nav.classList.remove("active");
+                });
+
+                item.classList.add("active");
+
+                const page = item.dataset.page;
+
+                roomPage.classList.remove("active");
+
+                if (page === "groupPage") {
+
+                    groupPage.style.display = "block";
+                    roomsPage.classList.remove("active");
+
+                    pageTitle.textContent = "Group";
+                    pageSubtitle.textContent =
+                        "Testlarni guruh bilan ulashing va muhokama qiling";
+
+                }
+
+                if (page === "roomsPage") {
+
+                    groupPage.style.display = "none";
+                    roomsPage.classList.add("active");
+
+                    pageTitle.textContent = "TestRoom";
+                    pageSubtitle.textContent =
+                        "Testlarni foydalanuvchilar bilan birga ishlang";
+
+                }
+
+            });
+
+        });
+
+
+        /* =========================
+           ENTER ROOM
+        ========================== */
+
+        function enterRoom(passwordRequired = false) {
+
+            if (passwordRequired) {
+                openPasswordModal();
+                return;
+            }
+
+            roomsPage.classList.remove("active");
+            groupPage.style.display = "none";
+
+            roomPage.classList.add("active");
+
+            pageTitle.textContent = "Matematika Battle #24";
+            pageSubtitle.textContent =
+                "TestRoom · 3 ta ishtirokchi";
+
+            navItems.forEach(nav => {
+                nav.classList.remove("active");
+            });
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+
+        }
+
+
+        /* =========================
+           PASSWORD MODAL
+        ========================== */
+
+        function openPasswordModal() {
+
+            document
+                .getElementById("passwordModal")
+                .classList.add("show");
+
+            document
+                .getElementById("roomPassword")
+                .focus();
+
+        }
+
+
+        function closePasswordModal() {
+
+            document
+                .getElementById("passwordModal")
+                .classList.remove("show");
+
+            document
+                .getElementById("roomPassword")
+                .value = "";
+
+        }
+
+
+        function checkPassword() {
+
+            const password =
+                document.getElementById("roomPassword").value;
+
+            /*
+             * STATIC DEMO PASSWORD
+             *
+             * Django backendga ulanganda:
+             * POST /api/testrooms/<id>/join/
+             * orqali tekshiriladi.
+             */
+
+            if (password === "1234") {
+
+                closePasswordModal();
+
+                enterRoom(false);
+
+                showToast("Roomga muvaffaqiyatli qo‘shildingiz");
+
+            } else {
+
+                showToast("Room paroli noto‘g‘ri");
+
+            }
+
+        }
+
+
+        /* =========================
+           LEAVE ROOM
+        ========================== */
+
+        function leaveRoom() {
+
+            roomPage.classList.remove("active");
+            roomsPage.classList.add("active");
+
+            pageTitle.textContent = "TestRoom";
+            pageSubtitle.textContent =
+                "Testlarni foydalanuvchilar bilan birga ishlang";
+
+            navItems.forEach(nav => {
+
+                nav.classList.remove("active");
+
+                if (nav.dataset.page === "roomsPage") {
+                    nav.classList.add("active");
+                }
+
+            });
+
+            showToast("Roomdan chiqdingiz");
+
+        }
+
+
+        /* =========================
+           CHAT
+        ========================== */
+
+        function handleMessage(event) {
+
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+
+        }
+
+
+        function sendMessage() {
+
+            const input =
+                document.getElementById("messageInput");
+
+            const text = input.value.trim();
+
+            if (!text) {
+                return;
+            }
+
+            const messages =
+                document.getElementById("messages");
+
+            const message =
+                document.createElement("div");
+
+            message.className = "message me";
+
+            const currentTime =
+                new Date().toLocaleTimeString("uz-UZ", {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+
+            message.innerHTML = `
+
+            <div class="message-avatar">
+                AS
+            </div>
+
+            <div class="bubble">
+
+                <div class="bubble-author">
+                    Siz
+                </div>
+
+                <div class="bubble-text">
+                    ${escapeHtml(text)}
+                </div>
+
+                <div class="bubble-time">
+                    ${currentTime}
+                </div>
+
+            </div>
+
+        `;
+
+            messages.appendChild(message);
+
+            input.value = "";
+
+            messages.scrollTop =
+                messages.scrollHeight;
+
+        }
+
+
+        function escapeHtml(text) {
+
+            const div = document.createElement("div");
+
+            div.textContent = text;
+
+            return div.innerHTML;
+
+        }
+
+
+        /* =========================
+           TOAST
+        ========================== */
+
+        let toastTimer;
+
+        function showToast(message) {
+
+            const toast =
+                document.getElementById("toast");
+
+            toast.textContent = message;
+
+            toast.classList.add("show");
+
+            clearTimeout(toastTimer);
+
+            toastTimer = setTimeout(() => {
+
+                toast.classList.remove("show");
+
+            }, 2500);
+
+        }
+
+
+        /* =========================
+           MODAL CLICK OUTSIDE
+        ========================== */
+
+        document
+            .getElementById("passwordModal")
+            .addEventListener("click", function (e) {
+
+                if (e.target === this) {
+                    closePasswordModal();
+                }
+
+            });
+
+    </script>
+
+</body>
+
+</html>

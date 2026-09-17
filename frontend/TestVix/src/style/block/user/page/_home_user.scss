@@ -240,6 +240,12 @@
     color: var(--text-muted);
 }
 
+.tag-card:hover {
+    background: var(--surface);
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+}
+
 @media (max-width: 1024px) {
     .home-user-grid {
         grid-template-columns: 1fr;

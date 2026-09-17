@@ -23,8 +23,6 @@ export const AuthProvider = ({ children }) => {
           setToken(res);
           setRole(res.user)
 
-          console.log(res);
-          console.log(res.user);
 
         } else {
           setToken(null);
@@ -56,10 +54,6 @@ export const AuthProvider = ({ children }) => {
   const handleRole = (data) => {
     setRole(data)
   }
-
-  // Tekshiruv tugamaguncha hech narsani ko'rsatmaymiz (yoki Spinner ko'rsatish mumkin)
-  // if (loading) return null;
-  console.log('salom');
 
   return (
 

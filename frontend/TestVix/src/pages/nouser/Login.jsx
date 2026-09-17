@@ -3,6 +3,7 @@ import { loginUser } from "../../api/auth";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import FonColor from "../../components/ui/FonColor";
+import { getAvatar } from "../../api/profile";
 
 export default function Login() {
   const { login, handleRole } = useContext(AuthContext);
@@ -19,6 +20,7 @@ export default function Login() {
       handleRole(res.user)
       login(true);
       localStorage.setItem('user', JSON.stringify(res.user))
+      localStorage.setItem('user_avatar', res.user.avatar ? getAvatar(res.user.avatar) : null)
       navigate('/');
     } else {
       setMessage(res.message);

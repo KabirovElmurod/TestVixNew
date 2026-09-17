@@ -22,6 +22,20 @@
   --fon-color: #2068ff;
 
 
+  --chat-bg: #f8fafc;
+  --chat-text: #1e293b;
+  --chat-muted: #64748b;
+  --chat-hover: rgba(0, 0, 0, 0.05);
+  --chat-message-bg: #4791ff;
+  --chat-own-message-bg: #6366f1;
+  --chat-input-bg: #ffffff;
+  --chat-input-border: #e2e8f0;
+  --chat-input-focus: #6366f1;
+  --chat-textarea-bg: #f8fafc;
+  --chat-textarea-focus-bg: #ffffff;
+  --chat-send-bg: #6366f1;
+  --chat-send-hover: #4f46e5;
+
   --primary: #5b5cf0;
   --primary-dark: #4849d8;
   --primary-light: #eef0ff;
@@ -156,6 +170,20 @@ html[data-theme='dark'] {
   --sidebar_bg: rgba(7, 12, 40, 0.92);
   --sidebar_a: #b8b8b8;
 
+
+  --chat-bg: #0e1621;
+  --chat-text: #ffffff;
+  --chat-muted: #7d8c9a;
+  --chat-hover: rgba(255, 255, 255, 0.1);
+  --chat-message-bg: #182533;
+  --chat-own-message-bg: #2b5278;
+  --chat-input-bg: #17212b;
+  --chat-input-border: #2b3a4a;
+  --chat-input-focus: #5288c1;
+  --chat-textarea-bg: #242f3d;
+  --chat-textarea-focus-bg: #2b3a4a;
+  --chat-send-bg: #5288c1;
+  --chat-send-hover: #4a7ab0;
 
   --input-bg: #0F172B;
   --input-border: rgba(255, 255, 255, 0.18);

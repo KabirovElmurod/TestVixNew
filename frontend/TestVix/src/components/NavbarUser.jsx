@@ -9,6 +9,7 @@ import ThemeButton from './ui/ThemeButton'
 import MenuNavbar from './MenuNavbar'
 import ProfileTheme from './ui/ProfileTheme'
 import { logo_img, profile_img } from '../api/request_testlar'
+import { getAvatar, getCachedAvatar } from '../api/profile'
 // import { profile_img } from '../../api/request'
 
 export default function NavbarUser() {
@@ -60,7 +61,8 @@ export default function NavbarUser() {
     useEffect(
         () => {
             async function func() {
-                setProfile(await profile_img())
+
+                setProfile(getCachedAvatar())
                 setLogo(await logo_img())
             }
             func()

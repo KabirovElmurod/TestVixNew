@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
 
 class UserCreate(BaseModel):
     nickname: str
@@ -40,3 +42,38 @@ class UserDelete(BaseModel):
 class SearchUser(BaseModel):
     search: str
     page: int
+
+# Profile schemas
+class ProfileUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    nickname: Optional[str] = None
+    bio: Optional[str] = None
+    avatar: Optional[str] = None
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+class ProfileStats(BaseModel):
+    test_count: int
+    result_count: int
+    avg_score: float
+    streak: int
+
+class UserResult(BaseModel):
+    id: int
+    test_id: int
+    sum_son: int
+    true_son: int
+    false_son: int
+    isfinish: bool
+    created: datetime
+    score: Optional[float] = None
+
+class UserResultsResponse(BaseModel):
+    results: list[UserResult]
+    total: int
+
+class AvatarUrlUpdate(BaseModel):
+    avatar_url: str

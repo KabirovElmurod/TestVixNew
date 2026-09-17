@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from .app.api import user as user_router
 from .app.api import admin as admin_router
 # from .app.api import user
@@ -13,6 +14,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+from .app.cure.config import MEDIA_DIR
+app.mount(
+    "/media",
+    StaticFiles(directory=MEDIA_DIR),
+    name="media",
+)
+
+# Static files serving for avatars
+# app.mount("/media", StaticFiles(directory="media"), name="media")
+
 app.include_router(user_router.router)
 app.include_router(admin_router.router)
 

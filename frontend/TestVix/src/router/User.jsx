@@ -13,6 +13,8 @@ const FinishTest = lazy(() => import("../pages/user/FinishTest/FinishTest"))
 const SearchTest = lazy(() => import("../pages/user/SearchTest/SearchTest"))
 
 const Logout = lazy(() => import("../pages/user/Logout"));
+const Profile = lazy(() => import("../pages/user/Profile/Profile"));
+const Guruhlar = lazy(() => import("../pages/user/Guruhlar/Guruhlar"));
 const Login = lazy(() => import("../pages/nouser/Login"));
 const Register = lazy(() => import("../pages/nouser/Register"));
 const NoPage = lazy(() => import("../pages/NoPage"));
@@ -31,6 +33,8 @@ export default function User() {
                 <Route path="/test/finish/:id/:test_id/:hash_url" element={<FinishTest></FinishTest>}></Route>
                 <Route path="/search/:query" element={<SearchTest></SearchTest>}></Route>
                 <Route path='/aloqa' element={<Aloqa></Aloqa>}></Route>
+                <Route path='/profile' element={<Profile></Profile>}></Route>
+                <Route path='/guruhlar' element={<Guruhlar></Guruhlar>}></Route>
                 <Route path='/logout' element={<Logout></Logout>}></Route>
 
 

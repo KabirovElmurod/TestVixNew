@@ -5,6 +5,7 @@ python-jose
 passlib[bcrypt]
 rapidfuzz
 groq
+python-multipart
 
 sqlalchemy
 asyncpg

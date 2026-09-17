@@ -303,6 +303,7 @@ const JsonStructure = () => {
         <div className='json_structure'>
             <div className='json_header'>
                 <h3>JSON formati:</h3>
+                <p>AI, GPTga tashlang va javobini kuting!</p>
                 <button
                     className='copy_button'
                     onClick={handleCopy}

@@ -27,6 +27,8 @@ class User(Base):
     nickname = Column(String(100), nullable=True)
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+    bio = Column(Text, nullable=True)
+    avatar = Column(String(500), nullable=True)
 
     def __str__(self):
         return self.username
