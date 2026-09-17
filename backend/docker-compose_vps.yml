@@ -20,7 +20,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/nginx_vps.conf:/etc/nginx/nginx_vps.conf:ro
       - /opt/testvix/ssl:/etc/nginx/ssl:ro
     depends_on:
       - frontend
@@ -107,16 +107,16 @@ services:
     env_file:
       - .env
 
-  django:
-    build: ./django_main
-    expose:
-      - "8000"
-    depends_on:
-      - db
-    env_file:
-      - .env
-    volumes:
-      - ./django_main:/app
+  # django:
+  #   build: ./django_main
+  #   expose:
+  #     - "8000"
+  #   depends_on:
+  #     - db
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./django_main:/app
       # app:
       #   build: .
       #   env_file: .env
