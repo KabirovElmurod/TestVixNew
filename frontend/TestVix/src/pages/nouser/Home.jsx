@@ -202,11 +202,9 @@ export default function Home() {
         {/* 12. Footer */}
         <footer className="home-footer">
           <div className="footer-links">
-            <Link to="/about">Biz haqimizda</Link>
-            <Link to="/contact">Kontakt</Link>
-            <a href="https://t.me/testvix">Telegram</a>
-            <a href="https://instagram.com/testvix">Instagram</a>
-            <Link to="/terms">Qoidalar</Link>
+            <Link to="/">Biz haqimizda</Link>
+            <a href="https://t.me/test_vix">Telegram</a>
+            <a href="https://t.me/Elmurod_Kabirov">Bog'lanish</a>
           </div>
           <p className="copy">© 2024 TestVix. Barcha huquqlar himoyalangan.</p>
         </footer>

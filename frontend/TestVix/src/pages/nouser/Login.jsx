@@ -2,7 +2,6 @@ import { useState, useContext } from "react";
 import { loginUser } from "../../api/auth";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import FonColor from "../../components/ui/FonColor";
 import { getAvatar } from "../../api/profile";
 
 export default function Login() {
@@ -29,8 +28,8 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      <FonColor lightColor="#279af8" darkColor="#054298" top_y={-100} left_x={-150} wd={300} ht={300} />
-      <FonColor lightColor="#6366f1" darkColor="#312e81" top_y={400} left_x={400} wd={300} ht={300} />
+      {/* <FonColor lightColor="#279af8" darkColor="#054298" top_y={-100} left_x={-150} wd={300} ht={300} />
+      <FonColor lightColor="#6366f1" darkColor="#312e81" top_y={400} left_x={400} wd={300} ht={300} /> */}
 
       <div className="login-card">
         <div className="login-header">

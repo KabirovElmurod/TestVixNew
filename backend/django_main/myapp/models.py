@@ -99,3 +99,26 @@ class Aloqa(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     type = models.CharField(max_length=50, null=True)
     is_read = models.BooleanField(default=False)
+
+class TestRoom(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    test = models.ForeignKey(Testlar, on_delete=models.CASCADE)
+    nom = models.CharField(max_length=200)
+    tavsif = models.TextField(null=True, blank=True)
+    is_message = models.BooleanField(default=True)  # chat qismi ko'rinsinmi
+    is_password = models.BooleanField(default=False)  # kodli/kodsiz
+    password = models.CharField(max_length=100, null=True, blank=True)  # guruhga kirish uchun kod
+    created = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)  # room aktivmi
+
+    def __str__(self):
+        return self.nom
+
+class RoomMessage(models.Model):
+    room = models.ForeignKey(TestRoom, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField(null=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.room.nom} - {self.user.username}"

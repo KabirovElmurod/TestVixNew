@@ -3,7 +3,7 @@ import Hamburger from './ui/Hamburger'
 import Logo from './ui/Logo'
 import ThemeButton from './ui/ThemeButton'
 import ProfileTheme from './ui/ProfileTheme'
-import { getSearchTest, profile_img } from '../api/request_testlar'
+import { getSearchTest, logo_img, profile_img } from '../api/request_testlar'
 import { getCachedAvatar } from '../api/profile'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useSearchCon } from '../context/SearchContext'
@@ -16,7 +16,7 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
   let { pathname } = useLocation()
   let path = pathname.split('/')[1]
   let search_query = pathname.split('/')[2]
-
+  let logo = logo_img()
   const { searchText, setSearchText, searchTest, setSearchTest } = useSearchCon()
   const [search, setSearch] = useState('')
   const [avatar, setAvatar] = useState(profile)
@@ -104,7 +104,11 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
   useEffect(
     () => {
       setSearch(searchText.text)
-      if (searchText.submit === 1) {
+      console.log('keldi=>', searchText.text);
+
+      if (searchText.submit == 1) {
+        console.log('shart');
+
         handleSearchSubmit(searchText.text, null)
       }
     }, [searchText]
@@ -149,9 +153,9 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
           :
           (
             <div className='menu-navbar'>
-              <div>
+              <div className='menu-navbar-logo'>
                 <Hamburger setMobileMenuOpen={setMobileMenuOpen} mobileMenuOpen={mobileMenuOpen}></Hamburger>
-                <Logo closeMobileMenu={closeMobileMenu} />
+                <Logo logo={logo} closeMobileMenu={closeMobileMenu} />
               </div>
               <form className='input-div' onSubmit={(e) => handleSearchSubmit(search, null, e)}>
                 <input type="text" placeholder="Qidirish" className="search-input" value={search} onChange={(e) => handleSearchChange(e.target.value)}

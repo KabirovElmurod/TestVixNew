@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from .app.api import user as user_router
+from .app.api import websocket as websocket_router
 
 
 app = FastAPI()
@@ -17,3 +18,4 @@ app.add_middleware(
 )
 
 app.include_router(user_router.router)
+app.include_router(websocket_router.router)

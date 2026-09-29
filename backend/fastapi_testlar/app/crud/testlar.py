@@ -11,8 +11,8 @@ from ...app.crud.func import (
 # import fuzzy
 from sqlalchemy import distinct
 import json
-from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar, Hashtag,Natijalar
-from ..schemas.testlar import TestlarCreate, TestlarUpdate, SearchTestRequest, GetPublicTestlarRequest
+from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar, Hashtag,Natijalar, TestRoom
+from ..schemas.testlar import TestlarCreate, TestlarUpdate, SearchTestRequest, GetPublicTestlarRequest, TestRoomCreate, TestRoomRead, TestRoomJoin
 from ..redis.redis import get_redis
 from redis.commands.search.query import Query, NumericFilter
 from rapidfuzz import process, fuzz
@@ -113,7 +113,7 @@ async def create_test_with_json(db: AsyncSession, testlar: TestlarCreate, user_i
         ]
 
         db.add_all(variants)
-
+    generate_hashtags.delay(db_testlar.id, db_testlar.nom, db_testlar.fan, db_testlar.tavsif)
     await db.commit()
 
     redis = await get_redis()
@@ -798,4 +798,43 @@ async def delete_testlar(db: AsyncSession, key: str, id: str | int, user_id: int
     # await redis.delete("public_tests")
     await db.commit()
     return result.rowcount > 0
+
+async def create_testroom(db: AsyncSession, testroom: TestRoomCreate, user_id: int):
+    db_testroom = TestRoom(
+        user_id=user_id,
+        test_id=testroom.test_id,
+        nom=testroom.nom,
+        tavsif=testroom.tavsif,
+        is_message=testroom.is_message,
+        is_password=testroom.is_password,
+        password=testroom.password if testroom.is_password else None
+    )
+    db.add(db_testroom)
+    await db.commit()
+    await db.refresh(db_testroom)
+    return db_testroom
+
+async def get_testrooms_by_user(db: AsyncSession, user_id: int, skip: int = 0, limit: int = 10):
+    stmt = (
+        select(TestRoom)
+        # .where(TestRoom.user_id == user_id)
+        .where(TestRoom.is_active == True)
+        .order_by(TestRoom.created.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+async def get_testroom_by_id(db: AsyncSession, room_id: int):
+    result = await db.execute(select(TestRoom).where(TestRoom.id == room_id))
+    return result.scalar_one_or_none()
+
+async def join_testroom(db: AsyncSession, data: TestRoomJoin, user_id: int):
+    room = await get_testroom_by_id(db, data.room_id)
+    if not room:
+        return None
+    if room.is_password and room.password != data.password:
+        return None
+    return room
 

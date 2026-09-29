@@ -24,10 +24,22 @@ const PAGE_TITLES = {
 
 export default function AdminLayout() {
     const [collapsed, setCollapsed] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { pathname } = useLocation();
 
+    const toggleMobileMenu = () => {
+        setMobileMenuOpen(!mobileMenuOpen);
+    };
+
+    const closeMobileMenu = () => {
+        setMobileMenuOpen(false);
+    };
+
     return (
-        <div className={`admin ${collapsed ? 'admin--collapsed' : ''}`}>
+        <div className={`admin ${collapsed ? 'admin--collapsed' : ''} ${mobileMenuOpen ? 'admin--mobile-open' : ''}`}>
+            {mobileMenuOpen && (
+                <div className="admin__overlay" onClick={closeMobileMenu}></div>
+            )}
             <aside className="admin__sidebar">
                 <div className="admin__brand">
                     <span className="admin__brand-logo">TV</span>
@@ -42,6 +54,7 @@ export default function AdminLayout() {
                             className={({ isActive }) =>
                                 `admin__nav-link ${isActive ? 'admin__nav-link--active' : ''}`
                             }
+                            onClick={closeMobileMenu}
                         >
                             <span className="admin__nav-icon">{item.icon}</span>
                             {!collapsed && <span>{item.label}</span>}
@@ -68,6 +81,13 @@ export default function AdminLayout() {
                         <p className="admin__subtitle">Boshqaruv paneli</p>
                     </div>
                     <div className="admin__actions">
+                        <button
+                            className="admin__toggle-btn admin__mobile-menu-btn"
+                            onClick={toggleMobileMenu}
+                            aria-label="Menyuni ochish"
+                        >
+                            ☰
+                        </button>
                         <button
                             className="admin__toggle-btn"
                             onClick={() => setCollapsed((c) => !c)}

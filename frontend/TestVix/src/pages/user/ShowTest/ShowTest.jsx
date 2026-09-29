@@ -4,6 +4,7 @@ import { useSearchCon } from '../../../context/SearchContext'
 import { getShowTest } from '../../../api/request_testlar'
 import { AuthContext } from '../../../context/AuthContext'
 import { human_time } from '../../../lib/func'
+import CreateRoomModal from '../../../components/ui/CreateRoomModal'
 // import { useSearchCon } from '../../context/SearchContext'
 
 const getInitials = (name) => {
@@ -92,6 +93,7 @@ export default function ShowTest() {
     const displayStarCount = hoveredStar || selectedStar
     const [animate, setAnimate] = useState(false);
     const totalCommentCount = comments.reduce((sum, comment) => sum + 1 + comment.replies.length, 0)
+    const [showCreateRoomModal, setShowCreateRoomModal] = useState(false)
 
     useEffect(() => {
         const timer = setTimeout(() => setAnimate(true), 100);
@@ -368,6 +370,9 @@ export default function ShowTest() {
                         <button className='btn' onClick={handleStartNav}>
                             Boshlash
                         </button>
+                        <button className='btn btn-secondary' onClick={() => setShowCreateRoomModal(true)}>
+                            Testroom ochish
+                        </button>
                     </div>
 
                     <div className='tavsif_div'>
@@ -611,6 +616,16 @@ export default function ShowTest() {
                     ))}
                 </div>
             </div>
+
+            <CreateRoomModal
+                isOpen={showCreateRoomModal}
+                onClose={() => setShowCreateRoomModal(false)}
+                testId={test.id}
+                onSuccess={(roomId) => {
+                    console.log('Room created with ID:', roomId)
+                    // Optionally navigate to the room or show success message
+                }}
+            />
         </div >
     )
 }

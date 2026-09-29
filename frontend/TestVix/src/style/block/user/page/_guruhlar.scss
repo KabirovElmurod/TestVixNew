@@ -115,12 +115,12 @@
 // Room Card
 .room-card {
   position: relative;
-  background: var(--surface);
+  background-color: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
   overflow: hidden;
-  cursor: pointer;
+  // cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
@@ -521,12 +521,7 @@
   }
 }
 
-.room-card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: var(--shadow);
-}
+
 
 .room-card-title {
   padding: 15px 17px;
@@ -953,7 +948,7 @@
 }
 
 .message-input-improved {
-  width: calc(100% - 50px);
+  // width: calc(100% - 30px);
   padding: 16px;
   background: var(--chat-input-bg);
   // background-color: red;
@@ -974,11 +969,13 @@
 }
 
 .message-textarea {
-  flex: 1;
+  // flex: 1;
   // width: fit-content;
   // box-sizing: content-box;
+
+
+  width: 100%;
   border: 1px solid var(--chat-input-border);
-  // max-width: 50%;
   border-radius: 24px;
   padding: 12px 20px;
   font-size: 15px;

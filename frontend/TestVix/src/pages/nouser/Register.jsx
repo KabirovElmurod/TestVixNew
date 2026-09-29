@@ -2,7 +2,6 @@ import { useState, useContext } from "react";
 import { registerUser, loginUser } from "../../api/auth";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import FonColor from "../../components/ui/FonColor";
 
 
 function check_password(password) {
@@ -53,7 +52,7 @@ export default function Register() {
 
     // console.log('data_register', res);
     if (regRes.status) {
-      await login(true);
+      login(true);
       localStorage.setItem('user', JSON.stringify(res.user))
       navigate('/');
     } else {
@@ -63,8 +62,6 @@ export default function Register() {
 
   return (
     <div className="login-page" style={{ position: 'relative', top: '30px' }}>
-      <FonColor lightColor="#279af8" darkColor="#054298" top_y={-100} left_x={-150} wd={300} ht={300} />
-      <FonColor lightColor="#4ecdc4" darkColor="#00b894" top_y={400} left_x={400} wd={300} ht={300} />
 
       <div className="login-card" style={{ padding: '20px', margin: '10px auto' }}>
         <div className="login-header" style={{ marginBottom: '12px' }}>

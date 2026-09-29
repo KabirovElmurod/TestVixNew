@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
         // Backend status: false qaytarsa tokeni o'chirib tashlaymiz
 
         if (res && res.status !== false) {
+          // Token obyekt sifatida saqlaymiz, lekin keyin cookie'dan foydalanamiz
           setToken(res);
           setRole(res.user)
 
@@ -27,7 +28,7 @@ export const AuthProvider = ({ children }) => {
         } else {
           setToken(null);
           setRole(false)
-          navigate('/login')
+          navigate('/')
 
 
         }

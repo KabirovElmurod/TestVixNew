@@ -62,16 +62,16 @@ export const user = [
         'name': 'Mening testlarim',
         'icon': 'bi bi-stack'
     },
-    {
-        'link': '/leadeboard',
-        'name': 'Reyting',
-        'icon': 'bi bi-trophy'
-    },
-    {
-        'link': '/anylistic',
-        'name': 'Analitic',
-        'icon': 'bi bi-bar-chart'
-    },
+    // {
+    //     'link': '/leadeboard',
+    //     'name': 'Reyting',
+    //     'icon': 'bi bi-trophy'
+    // },
+    // {
+    //     'link': '/anylistic',
+    //     'name': 'Analitic',
+    //     'icon': 'bi bi-bar-chart'
+    // },
     {
         'link': '/profile',
         'name': 'Profil',

@@ -264,9 +264,20 @@
 
         .start_div {
             width: 100%;
+            display: flex;
+            gap: 12px;
 
             .btn {
-                width: 100%;
+                flex: 1;
+            }
+
+            .btn-secondary {
+                background: var(--div-div-color);
+                color: var(--text);
+
+                &:hover {
+                    background: var(--div-div-div-color);
+                }
             }
         }
     }

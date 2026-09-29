@@ -3,6 +3,7 @@ import { useSearchCon } from '../../context/SearchContext'
 import { getUserStats } from '../../api/profile'
 import { getTestGet } from '../../api/request_testlar'
 import { getUserResults } from '../../api/profile'
+import { useNavigate } from 'react-router-dom'
 
 const popularTopics = [
   { label: 'Matematika', value: 1290 },
@@ -18,6 +19,7 @@ const popularTopics = [
 ]
 
 export default function HomeUser() {
+  const navigate = useNavigate()
   const { searchText, setSearchText } = useSearchCon()
   const [stats, setStats] = useState(null)
   const [userTests, setUserTests] = useState([])
@@ -32,15 +34,15 @@ export default function HomeUser() {
           getTestGet(),
           getUserResults(0, 5)
         ])
-        
+
         if (statsRes.status) {
           setStats(statsRes.stats)
         }
-        
+
         if (Array.isArray(testsRes)) {
           setUserTests(testsRes.slice(0, 3))
         }
-        
+
         if (resultsRes.status && resultsRes.results) {
           setRecentResults(resultsRes.results.slice(0, 3))
         }
@@ -59,9 +61,17 @@ export default function HomeUser() {
   }
 
   const handleTopicClick = (topic) => {
-    setSearchText({ text: topic, submit: true })
+    setSearchText({
+      'text': topic,
+      'submit': 1
+    })
   }
-
+  const handleAddTestNav = () => {
+    navigate('/add_test')
+  }
+  const handleTestlarNav = () => {
+    navigate('/testlar')
+  }
   if (loading) {
     return (
       <div className="home-user-page">
@@ -81,8 +91,8 @@ export default function HomeUser() {
         </div>
 
         <div className="home-user-actions">
-          <button className="btn btn-primary">Test qo'shish</button>
-          <button className="btn btn-secondary">Qidirish</button>
+          <button className="btn btn-primary" onClick={handleAddTestNav}>Test qo'shish</button>
+          <button className="btn btn-secondary" onClick={handleTestlarNav}>Testlar</button>
         </div>
       </section>
 
@@ -122,7 +132,7 @@ export default function HomeUser() {
                 <p>Tezkor amallar va bloklar orqali ishlar tartibda bo'ladi.</p>
               </div>
               <div className="panel-actions">
-                <button className="panel-btn primary">Yangi test qo'shish</button>
+                <button className="panel-btn primary" onClick={handleAddTestNav}>Yangi test qo'shish</button>
               </div>
             </div>
 
@@ -185,23 +195,6 @@ export default function HomeUser() {
             ))}
           </div>
 
-          <div className="panel-heading" style={{ marginTop: '24px' }}>
-            <div>
-              <h2>Qidiruv</h2>
-              <p>Testlarni tez topish uchun pastdagi qidiruv maydonidan foydalaning.</p>
-            </div>
-          </div>
-
-          <div className="panel-actions" style={{ marginTop: '12px', justifyContent: 'stretch' }}>
-            <input
-              type="text"
-              value={searchText?.text || ''}
-              onChange={handleSearchChange}
-              placeholder="Mavzuni yoki test nomini yozing..."
-              className="search-input"
-              style={{ width: '100%', padding: '14px 16px', borderRadius: '16px', border: '1px solid var(--input-border)', background: 'var(--bg)', color: 'var(--text)', outline: 'none' }}
-            />
-          </div>
         </aside>
       </section>
     </div>

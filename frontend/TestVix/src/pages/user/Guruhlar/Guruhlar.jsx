@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 // import '../../../style/block/user/page/guruhlar'
 import RoomCard from './components/RoomCard'
 import RoomDetail from './components/RoomDetail'
 import WaitingRoom from './components/WaitingRoom'
 import PasswordModal from './components/PasswordModal'
 import GroupList from './components/GroupList'
+import { getTestRooms } from '../../../api/request_testlar'
 
 export default function Guruhlar() {
   const [currentPage, setCurrentPage] = useState('rooms') // 'group' or 'rooms'
@@ -12,6 +13,25 @@ export default function Guruhlar() {
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [selectedRoom, setSelectedRoom] = useState(null)
   const [showWaitingRoom, setShowWaitingRoom] = useState(false)
+  const [rooms, setRooms] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await getTestRooms()
+        if (response.status) {
+          setRooms(response.rooms)
+        }
+      } catch (error) {
+        console.error('Testroomlarni yuklashda xatolik:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRooms()
+  }, [])
 
   const handlePageChange = (page) => {
     setCurrentPage(page)
@@ -83,7 +103,7 @@ export default function Guruhlar() {
         ) : currentPage === 'group' ? (
           <GroupList />
         ) : (
-          <RoomCard onRoomClick={handleRoomClick} />
+          <RoomCard rooms={rooms} onRoomClick={handleRoomClick} loading={loading} />
         )}
       </div>
       {/* <RoomCard onRoomClick={handleRoomClick} />

@@ -1,11 +1,11 @@
 const API_URl_testlar = 'http://localhost/api2/testlar'; // testlar url
-const API_URL_admin_testlar = 'http://localhost/api2/testlar/admin'
-
+const API_URL_admin_testlar = 'http://localhost/api2/testlar/admin';
+import logo from '../assets/testvix.png'
 export const profile_img = () => {
     return '../public/profile.png'
 }
 export const logo_img = () => {
-    return '../public/testvix.png'
+    return logo
 }
 // get test public
 export const getPublicTest = async (data) => {
@@ -277,6 +277,42 @@ export const adminGetTestHashtags = async (testId) => {
         headers: {
             'Content-Type': 'application/json'
         }
+    });
+    return res.json();
+};
+
+// Testroom API functions
+export const createTestRoom = async (roomData) => {
+    const res = await fetch(`${API_URl_testlar}/testroom`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(roomData)
+    });
+    return res.json();
+};
+
+export const getTestRooms = async (skip = 0, limit = 10) => {
+    const res = await fetch(`${API_URl_testlar}/testroom?skip=${skip}&limit=${limit}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    return res.json();
+};
+
+export const joinTestRoom = async (roomData) => {
+    const res = await fetch(`${API_URl_testlar}/testroom/join`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(roomData)
     });
     return res.json();
 };

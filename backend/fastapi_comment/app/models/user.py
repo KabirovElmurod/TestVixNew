@@ -142,3 +142,27 @@ class Aloqa(Base):
     created = Column(DateTime, default=func.now())
     type = Column(String(50), nullable=True)
     is_read = Column(Boolean, default=False)
+
+class TestRoom(Base):
+    __tablename__ = "myapp_testroom"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False)
+    test_id = Column(Integer, ForeignKey("myapp_testlar.id", ondelete="CASCADE"))
+    nom = Column(String(200), nullable=False)
+    tavsif = Column(Text, nullable=True)
+    is_message = Column(Boolean, default=True)
+    is_password = Column(Boolean, default=False)
+    password = Column(String(100), nullable=True)
+    created = Column(DateTime, default=func.now())
+    is_active = Column(Boolean, default=True)
+
+    def __str__(self):
+        return self.nom
+
+class RoomMessage(Base):
+    __tablename__ = "myapp_roommessage"
+    id = Column(Integer, primary_key=True)
+    room_id = Column(Integer, ForeignKey("myapp_testroom.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("myapp_user.id", ondelete="CASCADE"))
+    text = Column(Text, nullable=False)
+    created = Column(DateTime, default=func.now())

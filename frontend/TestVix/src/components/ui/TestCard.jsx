@@ -7,7 +7,6 @@ export default function TestCard({ test, handleCopyId }) {
     const navigate = useNavigate()
     const { searchText, setSearchText } = useSearchCon()
     const handleSearchTag = (tag) => {
-        console.log('hash=>', tag);
 
         setSearchText(
             {
@@ -16,28 +15,6 @@ export default function TestCard({ test, handleCopyId }) {
             }
         )
     }
-    // const human_time = (timer) => {
-    //     let t = ''
-    //     hour = timer / 3600
-    //     min = (timer - hour * 3600) / 60
-    //     second = timer
-    // }
-    // function human_time(totalSeconds) {
-    //     if (totalSeconds < 1) return "0 seconds";
-
-    //     // const days = Math.floor(totalSeconds / 86400);
-    //     const hours = Math.floor((totalSeconds % 86400) / 3600);
-    //     const minutes = Math.floor((totalSeconds % 3600) / 60);
-    //     const seconds = totalSeconds % 60;
-
-    //     const parts = [];
-    //     // if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-    //     if (hours > 0) parts.push(`${hours} soat`);
-    //     if (minutes > 0) parts.push(`${minutes} minut`);
-    //     if (seconds > 0) parts.push(`${seconds} sekund`);
-
-    //     return parts.join(' ');
-    // }
     return (
 
         <div key={test.test_id} className="test-card" id={`test_card_id_${test.id}`}>
@@ -70,9 +47,6 @@ export default function TestCard({ test, handleCopyId }) {
 
             <div className="card-footer">
                 <div className="card-tags">
-                    {/* <span className="card-tag">#math</span>
-                  <span className="card-tag">#engilish</span>
-                  <span className="card-tag">#algebra</span> */}
                     {test.hashtag_names && test.hashtag_names.length > 0 ? (
                         test.hashtag_names.map((tag, idx) => (
                             <span key={idx} className="card-tag" onClick={() => handleSearchTag(tag)}>{'#'}{tag}</span>

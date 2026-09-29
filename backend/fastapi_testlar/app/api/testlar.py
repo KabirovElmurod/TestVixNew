@@ -5,7 +5,7 @@ from typing import List
 from ...app.crud.func import verify_hash_url, verify_one_hash
 
 from ...app.session import get_db
-from ...app.schemas.testlar import TestlarCreate, TestlarDelete, TestlarUpdate, TestlarRead, GetPublicTestlarRequest, SearchTestRequest
+from ...app.schemas.testlar import TestlarCreate, TestlarDelete, TestlarUpdate, TestlarRead, GetPublicTestlarRequest, SearchTestRequest, TestRoomCreate, TestRoomRead, TestRoomJoin
 from ...app.crud.testlar import (
     create_testlar,
     create_test_with_json,
@@ -18,7 +18,11 @@ from ...app.crud.testlar import (
     get_public_testlar,
     update_test,
     delete_testlar,
-    search_testlar
+    search_testlar,
+    create_testroom,
+    get_testrooms_by_user,
+    get_testroom_by_id,
+    join_testroom
 )
 from ...app.core.security import get_current_user
 from ...app.wrong import wrong
@@ -91,20 +95,20 @@ async def get_user_testlar_endpoint(
     return await get_testlar_by_user_id(db, current_user.get('id'))
 
 
-@router.get("/{testlar_id}", response_model=TestlarRead)
-async def get_testlar_endpoint(
-    testlar_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-    if current_user.get('status') == False:
-        return {'message': 'Foydalanuvchi tekshirishda xatolik yuz berdi', 'status': False, 'user': False}
+# @router.get("/{testlar_id}", response_model=TestlarRead)
+# async def get_testlar_endpoint(
+#     testlar_id: int,
+#     db: AsyncSession = Depends(get_db),
+#     current_user=Depends(get_current_user)
+# ):
+#     if current_user.get('status') == False:
+#         return {'message': 'Foydalanuvchi tekshirishda xatolik yuz berdi', 'status': False, 'user': False}
     
-    testlar = await get_testlar_by_id(db, testlar_id)
-    if not testlar:
-        return wrong("Test topilmadi", status=False)
+#     testlar = await get_testlar_by_id(db, testlar_id)
+#     if not testlar:
+#         return wrong("Test topilmadi", status=False)
     
-    return testlar
+#     return testlar
 
 
 @router.post("/update_test/{testlar_id}")
@@ -171,5 +175,46 @@ async def search_test(
     print('\n\n\n', data, '\n\n\n')
     if current_user.get('status') == False:
         return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user':False}
-    
+
     return await search_testlar(db, data)
+
+@router.post("/testroom")
+async def create_testroom_endpoint(
+    testroom: TestRoomCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    if current_user.get('status') == False:
+        return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
+
+    room = await create_testroom(db, testroom, current_user.get('id'))
+    if room:
+        return {"message": "Testroom muvaffaqiyatli yaratildi", "status": True, "room_id": room.id}
+    return {"message": "Testroom yaratishda xatolik yuz berdi", "status": False}
+
+@router.get("/testroom")
+async def get_testrooms_endpoint(
+    skip: int = 0,
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    if current_user.get('status') == False:
+        return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
+
+    rooms = await get_testrooms_by_user(db, current_user.get('id'), skip, limit)
+    return {"rooms": rooms, "status": True}
+
+@router.post("/testroom/join")
+async def join_testroom_endpoint(
+    data: TestRoomJoin,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    if current_user.get('status') == False:
+        return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
+
+    room = await join_testroom(db, data, current_user.get('id'))
+    if room:
+        return {"message": "Testroomga muvaffaqiyatli qo'shildi", "status": True, "room": room}
+    return {"message": "Testroom topilmadi yoki parol noto'g'ri", "status": False}

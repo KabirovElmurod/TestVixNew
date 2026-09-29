@@ -1,41 +1,52 @@
-import React, { useState, useRef, useEffect } from 'react'
-
-const staticMessages = [
-  {
-    id: 1,
-    user: { username: 'ali_student', nickname: 'Ali Student', avatar: 'AS' },
-    text: 'Hammaga omad! Testni boshlashga tayyormizmi?',
-    time: '14:35',
-    isOwn: false
-  },
-  {
-    id: 2,
-    user: { username: 'madina', nickname: 'Madina', avatar: 'MD' },
-    text: 'Ha, tayyormiz!',
-    time: '14:36',
-    isOwn: false
-  },
-  {
-    id: 3,
-    user: { username: 'student1', nickname: 'Siz', avatar: 'S' },
-    text: 'Bu test qiyin bo\'ladi deb o\'ylayman',
-    time: '14:40',
-    isOwn: false
-  },
-  {
-    id: 4,
-    user: { username: 'student1', nickname: 'Siz', avatar: 'S' },
-    text: 'Men ham tayyorman! Keling boshlaymiz',
-    time: '14:42',
-    isOwn: true
-  }
-]
+import React, { useState, useRef, useEffect, useContext } from 'react'
+import { useWebSocket } from '../../../../context/WebSocketContext'
+import { getRoomMessages } from '../../../../api/request_comment'
+import { AuthContext } from '../../../../context/AuthContext'
 
 export default function RoomDetail({ room, onLeave, onStartTest }) {
+  let { role } = useContext(AuthContext);
   const [messageInput, setMessageInput] = useState('')
-  const [messages, setMessages] = useState(staticMessages)
+  const [messages, setMessages] = useState([])
+  const [loading, setLoading] = useState(true)
   const messagesEndRef = useRef(null)
-  const currentUser = { id: 5, username: 'student1', nickname: 'Siz', avatar: 'S' }
+  // const { token } = React.useContext(AuthContext)
+  const { connect, disconnect, sendMessage, isConnected, roomUsers, wsMessages } = useWebSocket()
+
+  useEffect(() => {
+    // WebSocket ga ulanish
+    if (room && room.id) {
+      connect(room.id)
+
+      // Chat tarixini olish
+      const fetchMessages = async () => {
+        try {
+          const response = await getRoomMessages(room.id)
+          if (response.status) {
+            setMessages(response.messages)
+          }
+        } catch (error) {
+          console.error('Xabarlarni yuklashda xatolik:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+
+      fetchMessages()
+    }
+
+    return () => {
+      disconnect()
+    }
+  }, [])
+
+  // WebSocket'dan kelgan xabarlarni qo'shish
+  useEffect(() => {
+    if (wsMessages && wsMessages.length > 0) {
+      console.log('message=>', wsMessages);
+
+      setMessages(wsMessages)
+    }
+  }, [wsMessages])
 
   const handleStartTestClick = () => {
     if (onStartTest) {
@@ -47,15 +58,7 @@ export default function RoomDetail({ room, onLeave, onStartTest }) {
 
   const handleSendMessage = () => {
     if (messageInput.trim()) {
-      const newMessage = {
-        id: Date.now(),
-        user: currentUser,
-        text: messageInput.trim(),
-        time: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }),
-        isOwn: true
-      }
-
-      setMessages(prev => [...prev, newMessage])
+      sendMessage(messageInput.trim())
       setMessageInput('')
     }
   }
@@ -81,19 +84,19 @@ export default function RoomDetail({ room, onLeave, onStartTest }) {
       <div className="room-hero">
         <div className="room-hero-content">
           <div className="room-label">
-            ⚡ TESTROOM · OCHIQ ROOM
+            ⚡ TESTROOM · {room.is_active ? 'OCHIQ ROOM' : 'YOPILGAN'}
           </div>
-          <h2>TestRooms</h2>
+          <h2>{room.nom}</h2>
           <p>
-            Birgalikda test ishlash va natijalarni solishtirish
+            {room.tavsif || 'Birgalikda test ishlash va natijalarni solishtirish'}
           </p>
           <div className="room-hero-bottom">
             <div className="room-owner">
               <div className="hero-avatar">
-                {room.creator.nickname.charAt(0).toUpperCase()}
+                {room.user_id ? room.user_id.toString().charAt(0) : 'U'}
               </div>
               <div>
-                Room egasi: <strong>{room.creator.nickname}</strong>
+                Room egasi: <strong>User #{room.user_id}</strong>
               </div>
             </div>
             <button className="leave-btn" onClick={onLeave}>
@@ -109,25 +112,31 @@ export default function RoomDetail({ room, onLeave, onStartTest }) {
         <div className="room-card chat-card-improved">
           <div className="room-card-title">
             <h3>Room chat</h3>
-            <span className="count">{room.members.length} a'zo</span>
+            <span className="count">{roomUsers.length} a'zo</span>
           </div>
           <div className="messages-container">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`message-wrapper ${msg.isOwn ? 'own-message' : ''}`}>
-                <div className="message-header">
-                  <div className="message-avatar">
-                    {msg.user.avatar || msg.user.nickname.charAt(0).toUpperCase()}
+            {loading ? (
+              <div className="loading-message">Xabarlarni yuklash...</div>
+            ) : messages.length === 0 ? (
+              <div className="empty-message">Hozircha xabarlar yo'q</div>
+            ) : (
+              messages.map((msg, index) => (
+                <div key={msg.id || index} className={`message-wrapper ${msg.user_id === role.id ? 'own-message' : ''}`}>
+                  <div className="message-header">
+                    <div className="message-avatar">
+                      {msg.username ? msg.username.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div className="message-meta">
+                      <span className="message-author">{msg.username || `User #${msg.user_id}`}</span>
+                      <span className="message-time">{msg.created ? new Date(msg.created).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : 'Hozir'}</span>
+                    </div>
                   </div>
-                  <div className="message-meta">
-                    <span className="message-author">{msg.user.nickname}</span>
-                    <span className="message-time">{msg.time}</span>
+                  <div className="message-content">
+                    <div className="message-text">{msg.text}</div>
                   </div>
                 </div>
-                <div className="message-content">
-                  <div className="message-text">{msg.text}</div>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -160,30 +169,26 @@ export default function RoomDetail({ room, onLeave, onStartTest }) {
             <div className="room-card-body">
               <div className="room-test">
                 <div className="room-test-subject">
-                  {room.test.fan.toUpperCase()}
+                  TEST ID: {room.test_id}
                 </div>
                 <h4>
-                  {room.test.nom}
+                  Test # {room.test_id}
                 </h4>
                 <p>
-                  {room.test.tavsif}
+                  Test ID: {room.test_id}
                 </p>
                 <div className="room-test-meta">
                   <div className="meta-box">
-                    <small>Fan</small>
-                    <strong>{room.test.fan}</strong>
+                    <small>Chat</small>
+                    <strong>{room.is_message ? 'Yoqilgan' : 'Yoqilmagan'}</strong>
                   </div>
                   <div className="meta-box">
-                    <small>Vaqt</small>
-                    <strong>{room.test.istime ? `${room.test.time} min` : 'Cheksiz'}</strong>
+                    <small>Parol</small>
+                    <strong>{room.is_password ? 'Bor' : 'Yo\'q'}</strong>
                   </div>
                   <div className="meta-box">
-                    <small>Test ID</small>
-                    <strong>{room.test.test_id}</strong>
-                  </div>
-                  <div className="meta-box">
-                    <small>Vaqtli</small>
-                    <strong>{room.test.istime ? 'Ha' : 'Yo\'q'}</strong>
+                    <small>Yaratilgan</small>
+                    <strong>{new Date(room.created).toLocaleDateString()}</strong>
                   </div>
                 </div>
                 <button
@@ -201,24 +206,24 @@ export default function RoomDetail({ room, onLeave, onStartTest }) {
             <div className="room-card-title">
               <h3>A'zolar</h3>
               <span className="count">
-                {room.members.length} / 10
+                {roomUsers.length}
               </span>
             </div>
             <div className="room-card-body">
-              {room.members.map((member, index) => (
-                <div key={member.id} className="member">
+              {roomUsers.map((member, index) => (
+                <div key={member.user_id || index} className="member">
                   <div className="member-avatar">
-                    {member.nickname.charAt(0).toUpperCase()}
+                    {member.username ? member.username.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div>
                     <div className="member-name">
-                      {member.nickname}
+                      {member.username || `User #${member.user_id}`}
                     </div>
                     <div className="member-role">
-                      {member.id === room.creator.id ? 'Room yaratuvchisi' : 'Ishtirokchi'}
+                      {member.user_id === room.user_id ? 'Room yaratuvchisi' : 'Ishtirokchi'}
                     </div>
                   </div>
-                  {member.id === room.creator.id && (
+                  {member.user_id === room.user_id && (
                     <span className="owner-tag">
                       EGASI
                     </span>
