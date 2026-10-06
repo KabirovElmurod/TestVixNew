@@ -6,10 +6,9 @@ const Register = lazy(() => import("./pages/nouser/Register"));
 const Home = lazy(() => import("./pages/nouser/Home"));
 
 
-// Authenficatsiyanni tekshirish uchun
+// Authenficatsiyani tekshirish uchun
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
-import { WebSocketProvider } from "./context/WebSocketContext";
 
 // Logindan o'tganlar uchun
 
@@ -41,9 +40,7 @@ function App() {
     <AuthProvider>
       <ThemeProvider>
         <SearchProvider>
-          <WebSocketProvider>
-            <AppContent />
-          </WebSocketProvider>
+          <AppContent />
         </SearchProvider>
       </ThemeProvider>
     </AuthProvider>

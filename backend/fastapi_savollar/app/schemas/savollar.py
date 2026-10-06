@@ -30,6 +30,7 @@ class FinishSavol(BaseModel):
     test_id: int | str
     hash_url: str
     answers : list | dict
+    time_spent: int = 0
 
 class SavollarUpdate(BaseModel):
     test_id: int | str | None = None

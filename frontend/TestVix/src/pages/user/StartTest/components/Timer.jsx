@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
-const Timer = ({ duration, is_time, onTimeUp, isRunning }) => {
+const Timer = ({ duration, is_time, onTimeUp, isRunning, onTimeSpent }) => {
   const validDuration = duration && !isNaN(duration) ? Number(duration) : 0;
 
   const [timeLeft, setTimeLeft] = useState(validDuration);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   useEffect(() => {
     if (!isRunning || timeLeft <= 0 || !is_time) return;
@@ -18,10 +19,17 @@ const Timer = ({ duration, is_time, onTimeUp, isRunning }) => {
         localStorage.setItem('time', prev - 1)
         return prev - 1;
       });
+      setElapsedTime((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(timer);
   }, [isRunning, onTimeUp]);
+
+  useEffect(() => {
+    if (onTimeSpent) {
+      onTimeSpent(elapsedTime);
+    }
+  }, [elapsedTime, onTimeSpent]);
 
   const formatTime = (seconds) => {
     if (!is_time) {

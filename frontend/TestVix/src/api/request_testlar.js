@@ -316,3 +316,57 @@ export const joinTestRoom = async (roomData) => {
     });
     return res.json();
 };
+
+export const getUserStatistics = async (limit = 100, test_id = null) => {
+    const url = test_id 
+        ? `${API_URl_testlar}/statistics?limit=${limit}&test_id=${test_id}`
+        : `${API_URl_testlar}/statistics?limit=${limit}`;
+    const res = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    return res.json();
+};
+
+export const getHourlyStatistics = async (date = null) => {
+    const url = date
+        ? `${API_URl_testlar}/statistics/hourly?date=${date}`
+        : `${API_URl_testlar}/statistics/hourly`;
+    const res = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    return res.json();
+};
+
+export const getTestStatisticsByDateRange = async (testId, startDate, endDate, startHour = null, endHour = null) => {
+    let url = `${API_URl_testlar}/statistics/test?test_id=${testId}&start_date=${startDate}&end_date=${endDate}`;
+    if (startHour) url += `&start_hour=${startHour}`;
+    if (endHour) url += `&end_hour=${endHour}`;
+
+    const res = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    return res.json();
+};
+
+export const getTestTopResults = async (testId, limit = 100) => {
+    const res = await fetch(`${API_URl_testlar}/statistics/test/top?test_id=${testId}&limit=${limit}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    return res.json();
+};

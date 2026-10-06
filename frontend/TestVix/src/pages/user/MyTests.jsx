@@ -178,6 +178,13 @@ export default function MyTests() {
                           >
                             <i className="bi bi-pencil-square"></i>
                           </button>
+                          <button
+                            className="icon-button"
+                            title="Statistika"
+                            onClick={() => navigate('/test_statistics', { state: { test_id: test.test_id, test_name: test.nom } })}
+                          >
+                            <i className="bi bi-bar-chart"></i>
+                          </button>
                           <button className="icon-button delete-button" title="O'chirish" onClick={() => triggerDeleteModal(test)}><i className="bi bi-trash"></i></button>
                         </div>
                       </div>

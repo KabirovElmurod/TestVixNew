@@ -382,3 +382,19 @@ async def logout():
     return response
 
 
+@router.get("/get-test-tokens")
+async def get_test_tokens(redis_client=Depends(get_redis)):
+    """Load test uchun tokenlarni Redis dan olish"""
+    try:
+        if redis_client:
+            tokens = await redis_client.hgetall('test_tokens')
+            return {
+                "status": True,
+                "tokens": list(tokens.values()),
+                "count": len(tokens)
+            }
+        return {"status": False, "message": "Redis connection error"}
+    except Exception as e:
+        return {"status": False, "message": str(e)}
+
+

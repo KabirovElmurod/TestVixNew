@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.postgres.indexes import GinIndex
+from django.db.models import Index
+from django.db.models.functions import Cast
+from django.db.models import DateTimeField, TimeField
 
 class User(models.Model):
     username = models.CharField(max_length=100, unique=True, db_index=True)
@@ -76,7 +79,25 @@ class Natijalar(models.Model):
     false_son = models.IntegerField(default=0)
     answer = models.JSONField(null=True)
     isfinish = models.BooleanField(default=False)
+    # time_spent = Column(Integer, default=0)
+    time_spent = models.IntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['created'], name='natijalar_created_idx'),
+            models.Index(fields=['user', 'test'], name='natijalar_user_test_idx'),
+            models.Index(fields=['isfinish'], name='natijalar_isfinish_idx'),
+        ]
+
+    @classmethod
+    def create_time_index(cls):
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS natijalar_created_time_idx
+                ON myapp_natijalar ((created::time));
+            """)
 
 # class NatijaAnswer(models.Models):
 #     natija = models.ForeignKey(Natijalar, on_delete=models.CASCADE)

@@ -15,11 +15,15 @@
     "@excalidraw/excalidraw": "^0.18.1",
     "@excalidraw/utils": "^0.1.3-test32",
     "@mui/material": "^9.0.1",
+    "docx": "^9.8.1",
+    "flatpickr": "^4.6.13",
     "katex": "^0.17.0",
     "mathlive": "^0.110.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.14.2"
+    "react-router-dom": "^7.14.2",
+    "recharts": "^3.10.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

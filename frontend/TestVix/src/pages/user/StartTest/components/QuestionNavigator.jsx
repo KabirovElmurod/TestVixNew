@@ -13,6 +13,7 @@ const QuestionNavigator = ({
   is_time,
   isTimerRunning,
   onTimeUp,
+  onTimeSpent,
   handleSubmitTest
 }) => {
 
@@ -37,6 +38,7 @@ const QuestionNavigator = ({
                     is_time={is_time}
                     onTimeUp={onTimeUp}
                     isRunning={isTimerRunning}
+                    onTimeSpent={onTimeSpent}
                   />
                 )
                   :
@@ -45,6 +47,7 @@ const QuestionNavigator = ({
                       duration={3600}
                       onTimeUp={onTimeUp}
                       isRunning={isTimerRunning}
+                      onTimeSpent={onTimeSpent}
                     />
                   )
               }

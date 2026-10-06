@@ -1,8 +1,23 @@
-from sqlalchemy import Column, JSON, Integer, String, Boolean, DateTime, func, Text, ForeignKey, Index
+from sqlalchemy import Column, JSON, Integer, String, Boolean, DateTime, func, Text, ForeignKey, Index, cast, Time, select, text
 from sqlalchemy.orm import relationship
 from ..base import Base
 
 
+class User(Base):
+    __tablename__ = "myapp_user"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), unique=True, index=True)
+    password = Column(String(300), nullable=False)
+    email = Column(String(100), unique=True, index=True)
+    created_at = Column(DateTime, default=func.now())
+    nickname = Column(String(100), nullable=True)
+    is_admin = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    bio = Column(Text, nullable=True)
+    avatar = Column(String(500), nullable=True)
+
+    def __str__(self):
+        return self.username
 class Testlar(Base):
     __tablename__ = "myapp_testlar"
     id = Column(Integer, primary_key=True, index=True)
@@ -88,22 +103,13 @@ class Natijalar(Base):
     false_son = Column(Integer, default=0)
     answer = Column(JSON, nullable=True)
     isfinish = Column(Boolean, default=False)
-    created = Column(DateTime, default=func.now())
-    isfinish = Column(Boolean, default=False)
+    time_spent = Column(Integer, default=0)
     created = Column(DateTime, default=func.now())
 
-class TestRoom(Base):
-    __tablename__ = "myapp_testroom"
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, nullable=False)
-    test_id = Column(Integer, ForeignKey("myapp_testlar.id", ondelete="CASCADE"))
-    nom = Column(String(200), nullable=False)
-    tavsif = Column(Text, nullable=True)
-    is_message = Column(Boolean, default=True)
-    is_password = Column(Boolean, default=False)
-    password = Column(String(100), nullable=True)
-    created = Column(DateTime, default=func.now())
-    is_active = Column(Boolean, default=True)
+    __table_args__ = (
+        Index('natijalar_created_idx', 'created'),
+        Index('natijalar_user_test_idx', 'user_id', 'test_id'),
+        Index('natijalar_isfinish_idx', 'isfinish'),
+        Index('natijalar_created_time_idx', text("(created::time)")),
+    )
 
-    def __str__(self):
-        return self.nom

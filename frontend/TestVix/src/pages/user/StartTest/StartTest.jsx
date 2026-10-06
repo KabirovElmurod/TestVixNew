@@ -23,16 +23,14 @@ const StartTest = () => {
   const [test, setTest] = useState([]);
   const [time, setTime] = useState()
   const [is_time, setIsTime] = useState(true)
+  const [timeSpent, setTimeSpent] = useState(0)
 
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('success');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [lastId, setLastId] = useState()
-  {
 
-    console.log('aaaaaaaa')
-  }
   const getSavollarData = async (last_id) => {
     let data = {
       id: Number(id),
@@ -216,7 +214,8 @@ const StartTest = () => {
       id: Number(id),
       test_id: testID,
       hash_url: hash_url,
-      answers: selectedAnswers
+      answers: selectedAnswers,
+      time_spent: timeSpent
     }
     let res = await finishSavol(data);
     if (res.user == false) {
@@ -227,6 +226,7 @@ const StartTest = () => {
     if (res.status == false) {
       return
     }
+
     localStorage.setItem('test_result', JSON.stringify(res.result));
     // Navigate to FinishTest page with results
     navigate(`/test/finish/${id}/${testID}/${hash_url}`);
@@ -312,6 +312,7 @@ const StartTest = () => {
             is_time={is_time}
             isTimerRunning={isTimerRunning}
             onTimeUp={handleTimeUp}
+            onTimeSpent={setTimeSpent}
             handleSubmitTest={handleSubmitTest}
           /> : null
       }

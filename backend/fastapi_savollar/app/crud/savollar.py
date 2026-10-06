@@ -438,292 +438,513 @@ async def get_savollar_by_id(db: AsyncSession, savollar_id: int):
 
 
 
-async def get_savol_by_test_id(db: AsyncSession, user_id:int, test_id: int, last_id:int = None, limit:int = 4):
+async def get_savol_by_test_id(
+    db: AsyncSession,
+    user_id: int,
+    test_id: int,
+    last_id: int = None,
+    limit: int = 4,):
+    """
+    User uchun test savollarini Redis'dagi random tartibda pagination qiladi.
+
+    API contract o'zgarmaydi:
+
+    {
+        "savollar": [...],
+        "last_id": 123
+    }
+
+    Muhim:
+    - test:{test_id}:savollar
+        -> testning umumiy savol ID'lari
+
+    - user:{user_id}:test:{test_id}:savollar
+        -> aynan shu user uchun random tartibdagi savol ID'lari
+
+    - savol:{id}
+        -> savolning JSON cache'i
+
+    Pagination faqat user-specific Redis LIST orqali amalga oshadi.
+    DB pagination uchun ishlatilmaydi.
+    """
+
+    if limit <= 0:
+        limit = 4
+
+    # Juda katta limit bilan bitta request serverni bosib ketmasin.
+    limit = min(limit, 50)
+
     redis = await get_redis()
-    time = None 
+
+    user_key = f"user:{user_id}:test:{test_id}:savollar"
+    public_key = f"test:{test_id}:savollar"
+    ready_key = f"test:{test_id}:savollar:ready"
+    test_key = f"public_tests:{test_id}"
+
+    # ---------------------------------------------------------
+    # 1. TEST TIME / EXPIRATION
+    # ---------------------------------------------------------
+
+    time = None
     istime = None
-    # savollar_ids = await redis.zrange(f'test:{test_id}:savollar', 0,-1)
-    if not await redis.lrange(
-        f'user:{user_id}:test:{test_id}:savollar',
-        0,1
-    ):
-        ids = await redis.zrange(
-            f'test:{test_id}:savollar',
-            0,-1
+
+    test_meta = await redis.hmget(
+        test_key,
+        "time",
+        "istime",
+    )
+
+    if test_meta:
+        time, istime = test_meta
+
+    if time is not None:
+        try:
+            time = int(time)
+        except (TypeError, ValueError):
+            time = None
+
+    # ---------------------------------------------------------
+    # 2. TEST SAVOLLARINI GLOBAL REDIS'DA BIR MARTA YARATISH
+    #
+    # Parallel requestlar kelganda:
+    #
+    # user1 ─┐
+    # user2 ─┼──> test:{id}:savollar
+    # user3 ─┘
+    #
+    # uchun Redis lock ishlatiladi.
+    # ---------------------------------------------------------
+
+    public_ids = await redis.zrange(
+        public_key,
+        0,
+        -1,
+    )
+
+    if not public_ids:
+        lock = redis.lock(
+            f"lock:test:{test_id}:init",
+            timeout=30,
+            blocking_timeout=10,
         )
-        if ids:
-            time, istime = await redis.hmget(
-                f'public_tests:{test_id}',
-                'time', 'istime'
+
+        async with lock:
+            # Lock olgandan keyin yana tekshiramiz.
+            # Chunki boshqa parallel request allaqachon yaratgan bo'lishi mumkin.
+            public_ids = await redis.zrange(
+                public_key,
+                0,
+                -1,
             )
-            if time is None:
+
+            if not public_ids:
                 result = await db.execute(
                     select(
-                        Testlar.time,
-                        Testlar.istime
+                        Savollar.id
                     )
-                    .where(Testlar.id == test_id)
+                    .where(
+                        Savollar.test_id == test_id
+                    )
+                    .order_by(
+                        Savollar.id.asc()
+                    )
                 )
-                row = result.one_or_none()
-                time = row.time
-                istime = row.istime
-            # else:
-            #     time, istime = test[0], test[1]
 
-            random.shuffle(ids)
-            key = f"user:{user_id}:test:{test_id}:savollar"
-            pipe = redis.pipeline()
-            pipe.rpush(key, *ids)
-            if istime:
-                pipe.expire(key, time)
-            else:
-                pipe.expire(key, 5 * 60 * 60)
-            await pipe.execute()
+                db_ids = result.scalars().all()
 
-            
-    key = f"user:{user_id}:test:{test_id}:savollar"
-    cashe_id = []
-    if last_id is None:
-        cashe_id = await redis.lrange(key, 0, limit - 1)
-    else:
-        pos = await redis.lpos(key, str(last_id))
+                if not db_ids:
+                    return {
+                        "savollar": [],
+                        "last_id": None,
+                    }
 
-        if pos is None:
-            cashe_id = []
-        else:
-            cashe_id = await redis.lrange(key, pos + 1, pos + limit)
+                # DB ID'larini Redis formatiga o'tkazamiz.
+                public_ids = [
+                    str(question_id)
+                    for question_id in db_ids
+                ]
 
-    # print('\n\n\n', 'ids=>', ids, '\n\n\n')
-    need_ids = []
-    savollar = []
-    if cashe_id:
-        print('\n\n\n', cashe_id, '\n\n\n')
-
-        for id in cashe_id:
-
-            savol = await redis.get(f'savol:{id}')
-            if savol:
-                savol = json.loads(savol)
-                savollar.append(savol)
-            else:
-                need_ids.append(int(id))
-        if savollar and not need_ids:
-            print('\n\n\n', 'cashe', '\n\n\n')
-            return {
-                'savollar': savollar,
-                'last_id': savollar[-1]['id'] if len(savollar)==limit else None
-            }
-    print('\n\n\n', 'need=>', need_ids, '\n\n\n')
-    print('\n\n\n', 'sav=>', savollar, '\n\n\n')
-
-    
-    if not await redis.get(f'test:{test_id}:savollar:ready'):
-        result_id = await db.execute(
-            select(
-                Savollar.id
-            )
-            .where(Savollar.test_id == test_id)
-            .order_by(Savollar.id.asc())
-        )
-        ids = result_id.scalars().all()
-        if ids:
-            if not time:
-                time, istime = await redis.hmget(
-                    f'public_tests:{test_id}',
-                    'time', 'istime'
-                )
+                # Test metadata kerak bo'lsa shu yerda olamiz.
                 if time is None:
                     result = await db.execute(
                         select(
                             Testlar.time,
-                            Testlar.istime
+                            Testlar.istime,
                         )
-                        .where(Testlar.id == test_id)
+                        .where(
+                            Testlar.id == test_id
+                        )
                     )
+
                     row = result.one_or_none()
-                    time = row.time
-                    istime = row.istime
-                # else:
-                #     print('\n\n\n', 'testsssss=>', test, '\n\n\n')
-                #     time, istime = test[0], test[1]
-            pipe = redis.pipeline()
-            pipe.zadd(
-                f'test:{test_id}:savollar',
-                {
-                    str(i):i for i in ids
-                }
-            )
-            if istime:
-                pipe.expire(
-                    f'test:{test_id}:savollar',
-                    time
+
+                    if row:
+                        time = row.time
+                        istime = row.istime
+
+                # Global test savollarini yaratamiz.
+                pipe = redis.pipeline()
+
+                pipe.zadd(
+                    public_key,
+                    {
+                        str(question_id): int(question_id)
+                        for question_id in db_ids
+                    },
                 )
+
+                if istime and time:
+                    ttl = int(time)
+                else:
+                    ttl = 5 * 60 * 60
+
+                pipe.expire(
+                    public_key,
+                    ttl,
+                )
+
                 pipe.set(
-                    f"test:{test_id}:savollar:ready", 1, ex=time
+                    ready_key,
+                    1,
+                    ex=ttl,
                 )
-                pipe.rpush(
-                    f"user:{user_id}:test:{test_id}:savollar",
-                    *ids
-                )
-                pipe.expire(
-                        f"user:{user_id}:test:{test_id}:savollar",
-                        time
-                )
-            else:
-                pipe.expire(
-                    f'test:{test_id}:savollar',
-                    5 * 60 * 60
-                )
-                pipe.set(
-                    f"test:{test_id}:savollar:ready", 1, ex=5 * 60 * 60
-                )
-                pipe.rpush(
-                    f"user:{user_id}:test:{test_id}:savollar",
-                    *ids
-                )
-                pipe.expire(
-                    f"user:{user_id}:test:{test_id}:savollar",
-                    5 * 60 * 60
-                )
-            await pipe.execute()
-            # await redis.zadd(
-            #     f'test:{test_id}:savollar',
-            #     {
-            #         str(i):i for i in ids
-            #     }
-            # )
-            
-            # await redis.set(f"test:{test_id}:savollar:ready", 1, ex=3600)
-            
-            # await redis.rpush(
-            #     f"user:{user_id}:test:{test_id}:savollar",
-            #     *ids
-            # )
 
-    
-    condition = Savollar.test_id == test_id
+                await pipe.execute()
 
-    if last_id is not None:
-        # condition.append(Savollar.id>last_id)
-        condition = and_(
-            Savollar.test_id == test_id,
-            Savollar.id>last_id
+    # ---------------------------------------------------------
+    # 3. USER-SPECIFIC RANDOM LISTNI YARATISH
+    #
+    # Muhim:
+    # Random faqat bir marta qilinadi.
+    #
+    # Keyingi requestlarda shuffle qilinmaydi.
+    # ---------------------------------------------------------
+
+    user_exists = await redis.exists(user_key)
+
+    if not user_exists:
+        lock = redis.lock(
+            f"lock:user:{user_id}:test:{test_id}:init",
+            timeout=30,
+            blocking_timeout=10,
         )
-    if not time:
-        time, istime = await redis.hmget(
-            f'public_tests:{test_id}',
-            'time', 'istime'
-        )
-        if time is None:
-            result = await db.execute(
-                select(
-                    Testlar.time,
-                    Testlar.istime
+
+        async with lock:
+            # Lock ichida qayta tekshirish shart.
+            user_exists = await redis.exists(user_key)
+
+            if not user_exists:
+                public_ids = await redis.zrange(
+                    public_key,
+                    0,
+                    -1,
                 )
-                .where(Testlar.id == test_id)
+
+                if not public_ids:
+                    return {
+                        "savollar": [],
+                        "last_id": None,
+                    }
+
+                # Faqat shu user uchun random.
+                user_ids = list(public_ids)
+                random.shuffle(user_ids)
+
+                if time is None:
+                    result = await db.execute(
+                        select(
+                            Testlar.time,
+                            Testlar.istime,
+                        )
+                        .where(
+                            Testlar.id == test_id
+                        )
+                    )
+
+                    row = result.one_or_none()
+
+                    if row:
+                        time = row.time
+                        istime = row.istime
+
+                if istime and time:
+                    ttl = int(time)
+                else:
+                    ttl = 5 * 60 * 60
+
+                pipe = redis.pipeline()
+
+                pipe.rpush(
+                    user_key,
+                    *user_ids,
+                )
+
+                pipe.expire(
+                    user_key,
+                    ttl,
+                )
+
+                await pipe.execute()
+
+    # ---------------------------------------------------------
+    # 4. PAGINATION
+    #
+    # MUHIM:
+    # Bundan keyin DB'dan "id > last_id" qilinmaydi.
+    #
+    # Chunki user list RANDOM.
+    #
+    # last_id Redis LIST ichidagi cursor.
+    # ---------------------------------------------------------
+
+    if last_id is None:
+        cache_ids = await redis.lrange(
+            user_key,
+            0,
+            limit - 1,
+        )
+    else:
+        position = await redis.lpos(
+            user_key,
+            str(last_id),
+        )
+
+        if position is None:
+            # Noto'g'ri yoki eski cursor.
+            #
+            # Bu holatda DB'ga tushib ketmaymiz.
+            # Aks holda random pagination buziladi.
+            return {
+                "savollar": [],
+                "last_id": None,
+            }
+
+        cache_ids = await redis.lrange(
+            user_key,
+            position + 1,
+            position + limit,
+        )
+
+    # Test tugagan.
+    if not cache_ids:
+        return {
+            "savollar": [],
+            "last_id": None,
+        }
+
+    # ---------------------------------------------------------
+    # 5. REDIS'DAN SAVOLLARNI OLISH
+    #
+    # savol:{id} mavjud bo'lsa DB'ga umuman bormaymiz.
+    # ---------------------------------------------------------
+
+    savollar = []
+    missing_ids = []
+
+    for question_id in cache_ids:
+        cached = await redis.get(
+            f"savol:{question_id}"
+        )
+
+        if cached:
+            try:
+                savol = json.loads(cached)
+                savollar.append(savol)
+            except (json.JSONDecodeError, TypeError):
+                missing_ids.append(int(question_id))
+        else:
+            missing_ids.append(int(question_id))
+
+    # ---------------------------------------------------------
+    # 6. CACHE MISS -> DB
+    #
+    # Faqat aynan kerak bo'lgan ID'lar olinadi.
+    # ---------------------------------------------------------
+
+    if missing_ids:
+        result = await db.execute(
+            select(
+                Savollar.id,
+                Savollar.test_id,
+                Savollar.text,
+                Savollar.svg_json,
+                func.json_agg(
+                    func.json_build_object(
+                        "id",
+                        Variantlar.id,
+                        "text",
+                        Variantlar.text,
+                    )
+                ).label("variantlar"),
             )
-            row = result.one_or_none()
-            time = row.time
-            istime = row.istime
-        # else:
-        #     time, istime = test[0], test[1]
+            .join(
+                Variantlar,
+                Variantlar.savol_id == Savollar.id,
+            )
+            .where(
+                Savollar.id.in_(missing_ids),
+                Savollar.test_id == test_id,
+            )
+            .group_by(
+                Savollar.id,
+                Savollar.test_id,
+                Savollar.text,
+                Savollar.svg_json,
+            )
+        )
 
-    result = (
-        select(
-            Savollar.id,
-            Savollar.test_id,
-            Savollar.text,
-            Savollar.svg_json,
-            func.json_agg(
-                func.json_build_object(
-                    "id", Variantlar.id,
-                    "text", Variantlar.text
+        rows = result.all()
+
+        # DB'dan kelgan savollarni dictionary qilamiz.
+        rows_map = {
+            row.id: row
+            for row in rows
+        }
+
+        cache_ttl = int(time) if istime and time else 5 * 60 * 60
+
+        # -----------------------------------------------------
+        # 7. CACHE MISS BO'LGAN SAVOLLARNI YARATISH
+        # -----------------------------------------------------
+
+        cache_pipe = redis.pipeline()
+
+        new_questions = {}
+
+        for question_id in missing_ids:
+            row = rows_map.get(question_id)
+
+            if row is None:
+                continue
+
+            savol_hash = generate_hash_savol(
+                row.id,
+                test_id,
+            )
+
+            variants = []
+
+            for variant in row.variantlar or []:
+                variant_id = variant["id"]
+
+                variants.append(
+                    {
+                        "id": variant_id,
+                        "text": variant["text"],
+                        "v_hash": generate_hash_url(
+                            variant_id,
+                            savol_hash,
+                        ),
+                    }
                 )
-            ).label("variantlar")
-        )
-        .join(
-            Variantlar,
-            Variantlar.savol_id == Savollar.id
-        )
-        .where(Savollar.test_id == test_id)
-        
-        .group_by(
-            Savollar.id,
-            Savollar.test_id,
-            Savollar.text,
-            Savollar.svg_json
-        )
-        .order_by(Savollar.id.asc())
-        .limit(limit)
-    )
-    if need_ids:
-        result = result.where(
-            Savollar.id.in_(need_ids)
-        )
-    elif last_id:
-        result = result.where(Savollar.id > last_id if last_id else True)
-    result = await db.execute(result)
-    rows = result.all()
 
-    # savollar = []
-    got_ids = []
-    for row in rows:
-        # print('sss=>', row)
-        # print('id=>', row.id)
-        if row.id not in got_ids:
-            savol_hash = generate_hash_savol(row.id, test_id)
             new_savol = {
                 "id": row.id,
                 "test_id": row.test_id,
-                'savol_hash': savol_hash,
+                "savol_hash": savol_hash,
                 "text": row.text,
                 "svg_json": row.svg_json,
-                "variantlar": [
-                    {
-                    "id": v['id'],
-                    "text": v['text'],
-                    'v_hash': generate_hash_url(v['id'], savol_hash)
-                }
-                for v in row.variantlar
-                ]
+                "variantlar": variants,
             }
-            got_ids.append(row.id)
-            savollar.append(new_savol)
-            # for v in variant:
-            #     savollar[savol.id]["variantlar"].append({
-            #         "id": v.id,
-            #         "text": v.text,
-            #         'v_hash': generate_hash_url(v.id, savollar[savol.id]['savol_hash'])
-            #     })
-            if istime:
-                await redis.set(f'savol:{row.id}', json.dumps(new_savol), ex = time)
-            else:
-                await redis.set(f'savol:{row.id}', json.dumps(new_savol), ex = 5*60*60)
 
-            # await redis.zadd(f'test:{row.test_id}:savollar', {
-            #     str(row.id): row.id
-            # })
-        
-    if savollar:
-        if cashe_id:
-            return {
-            'savollar':savollar,
-            'last_id': int(cashe_id[-1])
-            }
-        res = {
-            'savollar':savollar,
-            'last_id': (savollar)[-1]['id'] if len(list(savollar))==limit else None
+            new_questions[row.id] = new_savol
+
+            cache_pipe.set(
+                f"savol:{row.id}",
+                json.dumps(
+                    new_savol,
+                    ensure_ascii=False,
+                ),
+                ex=cache_ttl,
+            )
+
+        if new_questions:
+            await cache_pipe.execute()
+
+    # ---------------------------------------------------------
+    # 8. NATIJANI REDIS LIST TARTIBIDA QAYTARISH
+    #
+    # DB ASC tartibida emas!
+    #
+    # Userga berilgan:
+    #
+    # [85, 75, 81, 70]
+    #
+    # shu tartibda qaytishi kerak.
+    # ---------------------------------------------------------
+
+    all_questions = {}
+
+    # Avval cache'dagi savollar.
+    for savol in savollar:
+        all_questions[savol["id"]] = savol
+
+    # Keyin yangi DB'dan olingan savollar.
+    if missing_ids:
+        for question_id in missing_ids:
+            question = new_questions.get(question_id)
+
+            if question:
+                all_questions[question_id] = question
+
+    ordered_questions = []
+
+    for question_id in cache_ids:
+        question_id_int = int(question_id)
+
+        question = all_questions.get(
+            question_id_int
+        )
+
+        if question:
+            ordered_questions.append(question)
+
+    # ---------------------------------------------------------
+    # 9. KEYINGI CURSOR
+    #
+    # Faqat shu requestda haqiqatdan berilgan
+    # oxirgi savol.
+    # ---------------------------------------------------------
+
+    if len(ordered_questions) < len(cache_ids):
+        # Juda noodatiy holat:
+        # Redis listda ID bor, lekin DB'da savol yo'q.
+        #
+        # Baribir mavjud savollarni qaytaramiz.
+        pass
+
+    if not ordered_questions:
+        return {
+            "savollar": [],
+            "last_id": None,
         }
-        # print()
-        return res
-    # res['savollar':list(savollar.values())]
-    # res['']
+
+    returned_last_id = ordered_questions[-1]["id"]
+
+    # ---------------------------------------------------------
+    # 10. TEST TUGAGANINI ANIQLASH
+    #
+    # Agar oxirgi requestda limitdan kam savol kelgan bo'lsa,
+    # keyingi request shart emas.
+    #
+    # Masalan:
+    #
+    # 30 savol:
+    # 4 + 4 + 4 + 4 + 4 + 4 + 4 + 2
+    #
+    # oxirgi response:
+    # last_id = None
+    # ---------------------------------------------------------
+
+    if len(cache_ids) < limit:
+        next_last_id = None
+    else:
+        next_last_id = returned_last_id
+
     return {
-            'last_id':None,
-            'savollar': []
-        } 
-    # list(savollar.values())
-    # return result.scalar_one_or_none()
+        "savollar": ordered_questions,
+        "last_id": next_last_id,
+    }
 
 
 async def get_savollar_by_savol_code(db: AsyncSession, savol_code: str):
@@ -942,7 +1163,8 @@ async def finish_check_savol(db: AsyncSession, data, user_id):
         "true_son": true_son,
         "false_son": false_son,
         "answer": answers_result,
-        "isfinish": True
+        "isfinish": True,
+        "time_spent": data.time_spent if hasattr(data, 'time_spent') else 0
     }
 
     # PostgreSQL uchun "upsert" (ON CONFLICT DO UPDATE) so'rovi

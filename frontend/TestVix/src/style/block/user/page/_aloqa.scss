@@ -159,6 +159,11 @@ main {
 }
 
 /* ================= INFO CARD ================= */
+.info-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
 
 .info-card {
     background: var(--surface);
@@ -168,6 +173,20 @@ main {
     padding: 25px;
 
     box-shadow: 0 10px 35px rgba(30, 35, 70, 0.04);
+
+
+    .social-icon {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+
+        a {
+            padding: 5px 10px;
+            background-color: #5b5cf0;
+            color: white;
+            border-radius: 10px;
+        }
+    }
 }
 
 .info-card h3 {

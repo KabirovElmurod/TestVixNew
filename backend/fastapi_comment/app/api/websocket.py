@@ -106,14 +106,16 @@ async def websocket_endpoint(
                     **message_data
                 })
 
-                # Check if we need to flush to DB (5 minutes or 100MB)
-                current_time = datetime.now()
-                message_size = await get_room_message_size(room_id)
 
-                time_elapsed = (current_time - last_flush).total_seconds()
-                if time_elapsed >= 300 or message_size >= 100 * 1024 * 1024:  # 5 min or 100MB
-                    await flush_room_messages_to_db(room_id, db)
-                    last_flush = current_time
+
+            # Check if we need to flush to DB (5 minutes or 100MB)
+            current_time = datetime.now()
+            message_size = await get_room_message_size(room_id)
+
+            time_elapsed = (current_time - last_flush).total_seconds()
+            if time_elapsed >= 300 or message_size >= 100 * 1024 * 1024:  # 5 min or 100MB
+                await flush_room_messages_to_db(room_id, db)
+                last_flush = current_time
 
     except WebSocketDisconnect:
         manager.disconnect(websocket, room_id)

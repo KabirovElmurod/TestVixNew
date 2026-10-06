@@ -11,8 +11,9 @@ from ...app.crud.func import (
 # import fuzzy
 from sqlalchemy import distinct
 import json
-from ..models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar, Hashtag,Natijalar, TestRoom
-from ..schemas.testlar import TestlarCreate, TestlarUpdate, SearchTestRequest, GetPublicTestlarRequest, TestRoomCreate, TestRoomRead, TestRoomJoin
+from ...app.models.testlar import Testlar, Savollar, TestlarHashtag, Variantlar, Hashtag,Natijalar,User
+
+from ..schemas.testlar import TestlarCreate, TestlarUpdate, SearchTestRequest, GetPublicTestlarRequest
 from ..redis.redis import get_redis
 from redis.commands.search.query import Query, NumericFilter
 from rapidfuzz import process, fuzz
@@ -158,7 +159,26 @@ async def get_testlar_by_id(db: AsyncSession, testlar_id: int):
 
 async def get_test_by_test_id(db: AsyncSession, test_id: str | int):
     result = await db.execute(select(Testlar).where(Testlar.test_id == test_id))
-    return result.scalar_one_or_none()
+    test = result.scalar_one_or_none()
+    if not test:
+        return None
+
+    # Return as dict with hash_url
+    return {
+        'id': test.id,
+        'user_id': test.user_id,
+        'nom': test.nom,
+        'fan': test.fan,
+        'tavsif': test.tavsif,
+        'test_id': test.test_id,
+        'test_code': test.test_code,
+        'test_key': test.test_key,
+        'ispublic': test.ispublic,
+        'istime': test.istime,
+        'time': test.time,
+        'created': test.created,
+        'hash_url': generate_hash_url(test.id, test.test_key)
+    }
 
 
 async def get_testlar_by_test_code(db: AsyncSession, test_code: str):
@@ -799,42 +819,307 @@ async def delete_testlar(db: AsyncSession, key: str, id: str | int, user_id: int
     await db.commit()
     return result.rowcount > 0
 
-async def create_testroom(db: AsyncSession, testroom: TestRoomCreate, user_id: int):
-    db_testroom = TestRoom(
-        user_id=user_id,
-        test_id=testroom.test_id,
-        nom=testroom.nom,
-        tavsif=testroom.tavsif,
-        is_message=testroom.is_message,
-        is_password=testroom.is_password,
-        password=testroom.password if testroom.is_password else None
-    )
-    db.add(db_testroom)
-    await db.commit()
-    await db.refresh(db_testroom)
-    return db_testroom
 
-async def get_testrooms_by_user(db: AsyncSession, user_id: int, skip: int = 0, limit: int = 10):
+async def get_user_statistics(db: AsyncSession, user_id: int, limit: int = 100, test_id: str = None):
+    cache_key = f"user_stats:{user_id}:{test_id or 'all'}"
+    redis = await get_redis()
+    
+    cached_data = await redis.get(cache_key)
+    if cached_data:
+        return json.loads(cached_data)
+    
     stmt = (
-        select(TestRoom)
-        # .where(TestRoom.user_id == user_id)
-        .where(TestRoom.is_active == True)
-        .order_by(TestRoom.created.desc())
-        .offset(skip)
+        select(
+            Natijalar,
+            Testlar.nom,
+            Testlar.fan,
+            Testlar.test_id
+        )
+        .join(Testlar, Natijalar.test_id == Testlar.id)
+        .where(Natijalar.user_id == user_id)
+        .where(Natijalar.isfinish == True)
+    )
+    
+    if test_id:
+        stmt = stmt.where(Testlar.test_id == test_id)
+    
+    stmt = stmt.order_by(Natijalar.created.desc()).limit(limit)
+    
+    result = await db.execute(stmt)
+    rows = result.all()
+    
+    statistics = []
+    for natija, test_nom, test_fan, test_id in rows:
+        statistics.append({
+            "id": natija.id,
+            "test_id": test_id,
+            "test_name": test_nom,
+            "test_fan": test_fan,
+            "total_questions": natija.sum_son,
+            "correct_answers": natija.true_son,
+            "wrong_answers": natija.false_son,
+            "time_spent": natija.time_spent,
+            "created": natija.created.isoformat()
+        })
+    
+    await redis.set(cache_key, json.dumps(statistics), ex=300)
+    
+    return statistics
+
+
+async def get_hourly_statistics(db: AsyncSession, user_id: int, date: str = None):
+    cache_key = f"hourly_stats:{user_id}:{date or 'today'}"
+    redis = await get_redis()
+    
+    cached_data = await redis.get(cache_key)
+    if cached_data:
+        return json.loads(cached_data)
+    
+    from datetime import datetime, timedelta
+    
+    if date:
+        target_date = datetime.strptime(date, "%Y-%m-%d").date()
+    else:
+        target_date = datetime.now().date()
+    
+    start_datetime = datetime.combine(target_date, datetime.min.time())
+    end_datetime = start_datetime + timedelta(days=1)
+    
+    stmt = (
+        select(
+            extract('hour', Natijalar.created).label('hour'),
+            func.count(Natijalar.id).label('count'),
+            func.sum(Natijalar.true_son).label('total_correct'),
+            func.sum(Natijalar.false_son).label('total_wrong'),
+            func.avg(Natijalar.time_spent).label('avg_time')
+        )
+        .where(Natijalar.user_id == user_id)
+        .where(Natijalar.isfinish == True)
+        .where(Natijalar.created >= start_datetime)
+        .where(Natijalar.created < end_datetime)
+        .group_by(extract('hour', Natijalar.created))
+        .order_by(extract('hour', Natijalar.created))
+    )
+    
+    result = await db.execute(stmt)
+    rows = result.all()
+    
+    hourly_data = {str(i): {"count": 0, "total_correct": 0, "total_wrong": 0, "avg_time": 0} for i in range(24)}
+    
+    for hour, count, total_correct, total_wrong, avg_time in rows:
+        hourly_data[str(int(hour))] = {
+            "count": int(count),
+            "total_correct": int(total_correct),
+            "total_wrong": int(total_wrong),
+            "avg_time": float(avg_time) if avg_time else 0
+        }
+    
+    await redis.set(cache_key, json.dumps(hourly_data), ex=300)
+    
+    return hourly_data
+
+async def get_test_statistics_by_date_range(
+    db: AsyncSession,
+    test_id: str,
+    start_date: str,
+    end_date: str,
+    start_hour: str = None,
+    end_hour: str = None,
+):
+    from datetime import datetime, time, timezone
+    from zoneinfo import ZoneInfo
+
+    TASHKENT_TZ = ZoneInfo("Asia/Tashkent")
+
+    # =========================
+    # START DATETIME
+    # =========================
+
+    start_date_obj = datetime.strptime(
+        start_date,
+        "%Y-%m-%d"
+    ).date()
+
+    if start_hour:
+        hour, minute = map(
+            int,
+            start_hour.split(":")
+        )
+
+        start_datetime = datetime.combine(
+            start_date_obj,
+            time(hour, minute),
+            tzinfo=TASHKENT_TZ,
+        )
+    else:
+        start_datetime = datetime.combine(
+            start_date_obj,
+            time.min,
+            tzinfo=TASHKENT_TZ,
+        )
+
+    # =========================
+    # END DATETIME
+    # =========================
+
+    end_date_obj = datetime.strptime(
+        end_date,
+        "%Y-%m-%d"
+    ).date()
+
+    if end_hour:
+        hour, minute = map(
+            int,
+            end_hour.split(":")
+        )
+
+        end_datetime = datetime.combine(
+            end_date_obj,
+            time(hour, minute, 59, 999999),
+            tzinfo=TASHKENT_TZ,
+        )
+    else:
+        end_datetime = datetime.combine(
+            end_date_obj,
+            time.max,
+            tzinfo=TASHKENT_TZ,
+        )
+
+    # =========================
+    # TOSHKENT -> UTC
+    # UTC timezone'ni olib tashlaymiz
+    # chunki DB column WITHOUT TIME ZONE
+    # =========================
+
+    start_datetime = (
+        start_datetime
+        .astimezone(timezone.utc)
+        .replace(tzinfo=None)
+    )
+
+    end_datetime = (
+        end_datetime
+        .astimezone(timezone.utc)
+        .replace(tzinfo=None)
+    )
+
+    # =========================
+    # CONDITIONS
+    # =========================
+
+    conditions = [
+        Testlar.test_id == test_id,
+        Natijalar.isfinish.is_(True),
+
+        Natijalar.created >= start_datetime,
+        Natijalar.created <= end_datetime,
+    ]
+
+    # =========================
+    # QUERY
+    # =========================
+
+    stmt = (
+        select(
+            Natijalar,
+            Testlar.nom,
+            Testlar.fan,
+            Testlar.test_id,
+            User.nickname,
+            User.username,
+        )
+        .join(
+            Testlar,
+            Natijalar.test_id == Testlar.id,
+        )
+        .join(
+            User,
+            Natijalar.user_id == User.id,
+        )
+        .where(and_(*conditions))
+        .order_by(
+            Natijalar.created.desc()
+        )
+    )
+
+    result = await db.execute(stmt)
+
+    rows = result.all()
+
+    statistics = []
+
+    for (
+        natija,
+        test_nom,
+        test_fan,
+        test_id,
+        nickname,
+        username,
+    ) in rows:
+
+        statistics.append({
+            "id": natija.id,
+            "test_id": test_id,
+            "test_name": test_nom,
+            "test_fan": test_fan,
+
+            "total_questions": natija.sum_son,
+            "correct_answers": natija.true_son,
+            "wrong_answers": natija.false_son,
+
+            "time_spent": natija.time_spent,
+
+            "created": natija.created.isoformat(),
+
+            "user_id": natija.user_id,
+
+            "nickname": (
+                nickname
+                if nickname
+                else username
+            ),
+        })
+
+    return statistics
+
+async def get_test_top_results(db: AsyncSession, test_id: str, limit: int = 100):
+    stmt = (
+        select(
+            Natijalar,
+            Testlar.nom,
+            Testlar.fan,
+            Testlar.test_id,
+            User.nickname,
+            User.username
+        )
+        .join(Testlar, Natijalar.test_id == Testlar.id)
+        .join(User, Natijalar.user_id == User.id)
+        .where(Testlar.test_id == test_id)
+        .where(Natijalar.isfinish == True)
+        .order_by((Natijalar.true_son - Natijalar.false_son).desc(), Natijalar.time_spent.asc())
         .limit(limit)
     )
+
     result = await db.execute(stmt)
-    return result.scalars().all()
+    rows = result.all()
 
-async def get_testroom_by_id(db: AsyncSession, room_id: int):
-    result = await db.execute(select(TestRoom).where(TestRoom.id == room_id))
-    return result.scalar_one_or_none()
+    statistics = []
+    for natija, test_nom, test_fan, test_id, nickname, username in rows:
+        statistics.append({
+            "id": natija.id,
+            "test_id": test_id,
+            "test_name": test_nom,
+            "test_fan": test_fan,
+            "total_questions": natija.sum_son,
+            "correct_answers": natija.true_son,
+            "wrong_answers": natija.false_son,
+            "time_spent": natija.time_spent,
+            "created": natija.created.isoformat(),
+            "user_id": natija.user_id,
+            "nickname": nickname if nickname else username
+        })
 
-async def join_testroom(db: AsyncSession, data: TestRoomJoin, user_id: int):
-    room = await get_testroom_by_id(db, data.room_id)
-    if not room:
-        return None
-    if room.is_password and room.password != data.password:
-        return None
-    return room
+    return statistics
+
+
 

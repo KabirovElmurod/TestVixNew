@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .app.api.testlar import router as testlar_router
 from .app.api.admin_testlar import router as admin_testlar_router
+from .app.base import Base
+from .app.session import engine, get_db
 
 app = FastAPI()
 
@@ -16,8 +18,11 @@ from .app.redis.redis import get_redis, create_index_public_test_redis, create_i
 
 @app.on_event("startup")
 async def startup_event():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     redis = await get_redis()
-    await redis.flushdb()  
+    await redis.flushdb()
     await create_index_public_test_redis()
     await create_index_hashtag_redis()
     # Clear all Redis data on startup

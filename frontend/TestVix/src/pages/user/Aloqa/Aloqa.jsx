@@ -81,67 +81,84 @@ export default function Aloqa() {
 
 
             <div className="content">
+                <div className='info-cards'>
+                    <aside className='info-card'>
+                        <h3>
+                            Ijtimoiy tarmoq
+                        </h3>
+                        <div className='social-icon'>
+                            <a href="https://t.me/test_uz">
+                                <i className='bi bi-telegram'></i>
+                            </a>
+                            <a href="https://t.me/test_vix_admin_bot">
+                                <i className='bi bi-headset'></i>
+                            </a>
+                            <a href="https://t.me/test_vix_uz_bot">
+                                <i className='bi bi-robot'></i>
+                            </a>
+                        </div>
+                    </aside>
+
+                    <aside className="info-card">
+
+                        <h3>Murojaatingiz muhim</h3>
+
+                        <p>
+                            Yuborgan xabaringiz platformani yaxshilash va
+                            foydalanuvchilarga qulayroq tajriba yaratishimizga yordam beradi.
+                        </p>
 
 
-                <aside className="info-card">
+                        <div className="info-item">
 
-                    <h3>Murojaatingiz muhim</h3>
+                            <div className="info-icon">🐞</div>
 
-                    <p>
-                        Yuborgan xabaringiz platformani yaxshilash va
-                        foydalanuvchilarga qulayroq tajriba yaratishimizga yordam beradi.
-                    </p>
+                            <div>
+                                <strong>Xatolik topdingizmi?</strong>
+                                <span>
+                                    Platforma yoki testdagi xatolik haqida bizga xabar bering.
+                                </span>
+                            </div>
 
-
-                    <div className="info-item">
-
-                        <div className="info-icon">🐞</div>
-
-                        <div>
-                            <strong>Xatolik topdingizmi?</strong>
-                            <span>
-                                Platforma yoki testdagi xatolik haqida bizga xabar bering.
-                            </span>
                         </div>
 
-                    </div>
 
+                        <div className="info-item">
 
-                    <div className="info-item">
+                            <div className="info-icon">💡</div>
 
-                        <div className="info-icon">💡</div>
+                            <div>
+                                <strong>Taklifingiz bormi?</strong>
+                                <span>
+                                    Platformani qanday yaxshilash mumkinligi haqida fikringizni yozing.
+                                </span>
+                            </div>
 
-                        <div>
-                            <strong>Taklifingiz bormi?</strong>
-                            <span>
-                                Platformani qanday yaxshilash mumkinligi haqida fikringizni yozing.
-                            </span>
                         </div>
 
-                    </div>
 
+                        <div className="info-item">
 
-                    <div className="info-item">
+                            <div className="info-icon">❓</div>
 
-                        <div className="info-icon">❓</div>
+                            <div>
+                                <strong>Savolingiz bormi?</strong>
+                                <span>
+                                    Tushunmagan joyingizni yozib qoldiring.
+                                </span>
+                            </div>
 
-                        <div>
-                            <strong>Savolingiz bormi?</strong>
-                            <span>
-                                Tushunmagan joyingizni yozib qoldiring.
-                            </span>
                         </div>
 
-                    </div>
 
+                        <div className="response-note">
+                            💬 <strong>Javob kerak bo‘lsa</strong>, Telegram username yoki
+                            email manzilingizni qoldiring. Aks holda murojaat faqat
+                            ma'lumot sifatida qabul qilinadi.
+                        </div>
 
-                    <div className="response-note">
-                        💬 <strong>Javob kerak bo‘lsa</strong>, Telegram username yoki
-                        email manzilingizni qoldiring. Aks holda murojaat faqat
-                        ma'lumot sifatida qabul qilinadi.
-                    </div>
-
-                </aside>
+                    </aside>
+                </div>
 
 
 

@@ -46,3 +46,39 @@ async def flush_room_messages_to_db(room_id: int, db_session):
 
     # Redisdan tozalash
     await redis.delete(f"room_messages:{room_id}")
+
+
+async def set_group_session_state(session_id: int, state: dict):
+    """Guruh test sessiyasi holatini Redisga saqlash"""
+    await redis.hset(f"group_session:{session_id}", mapping=state)
+    await redis.expire(f"group_session:{session_id}", 7200)  # 2 soat TTL
+
+
+async def get_group_session_state(session_id: int) -> Optional[dict]:
+    """Guruh test sessiyasi holatini Redisdan olish"""
+    state = await redis.hgetall(f"group_session:{session_id}")
+    return state if state else None
+
+
+async def set_user_progress(session_id: int, user_id: int, progress: dict):
+    """Foydalanuvchi progressini Redisga saqlash"""
+    await redis.hset(f"user_progress:{session_id}", str(user_id), json.dumps(progress))
+    await redis.expire(f"user_progress:{session_id}", 7200)
+
+
+async def get_user_progress(session_id: int, user_id: int) -> Optional[dict]:
+    """Foydalanuvchi progressini Redisdan olish"""
+    progress = await redis.hget(f"user_progress:{session_id}", str(user_id))
+    return json.loads(progress) if progress else None
+
+
+async def get_all_users_progress(session_id: int) -> dict:
+    """Barcha foydalanuvchilar progressini olish"""
+    all_progress = await redis.hgetall(f"user_progress:{session_id}")
+    return {k: json.loads(v) for k, v in all_progress.items()} if all_progress else {}
+
+
+async def delete_group_session(session_id: int):
+    """Guruh sessiyasini Redisdan o'chirish"""
+    await redis.delete(f"group_session:{session_id}")
+    await redis.delete(f"user_progress:{session_id}")

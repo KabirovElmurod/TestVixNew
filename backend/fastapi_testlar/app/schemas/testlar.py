@@ -60,29 +60,3 @@ class SearchTestRequest(BaseModel):
     last_id: int | None = None
     last: float | None = None
 
-class TestRoomCreate(BaseModel):
-    test_id: int
-    nom: str
-    tavsif: Optional[str] = None
-    is_message: bool = True
-    is_password: bool = False
-    password: Optional[str] = None
-
-class TestRoomRead(BaseModel):
-    id: int
-    user_id: int
-    test_id: int
-    nom: str
-    tavsif: Optional[str]
-    is_message: bool
-    is_password: bool
-    password: Optional[str]
-    created: datetime.datetime
-    is_active: bool
-
-    class Config:
-        from_attributes = True
-
-class TestRoomJoin(BaseModel):
-    room_id: int
-    password: Optional[str] = None
