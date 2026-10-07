@@ -83,15 +83,18 @@ export default function MenuNavbar({ profile, themeIcon, themeLabel, toggleTheme
     if (!value || value === '') {
       return
     }
-    if (typeof value === "number") {
-      data['text'] = value;
+    let num = Number(value)
+    if (!Number.isNaN(num)) {
+      data['text'] = num;
       data['type'] = "number";
-    } else if (typeof value === "string" && value.length === 20 && !value.includes(' ')) {
-      data['text'] = value;
-      data['type'] = "key";
     } else if (typeof value === "string") {
-      data['text'] = value;
-      data['type'] = "string";
+      if (value.length === 20 && !value.includes(' ')) {
+        data['text'] = value;
+        data['type'] = "key";
+      } else {
+        data['text'] = value;
+        data['type'] = "string";
+      }
     }
     // console.log('data=>', data);
 

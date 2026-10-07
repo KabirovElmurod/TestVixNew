@@ -497,9 +497,82 @@ async def get_public_testlar(db: AsyncSession, data: GetPublicTestlarRequest, li
 
 
 async def search_testlar(db: AsyncSession, data, limit: int = 4, self: bool = False):
-    
+
     """Fallback to DB search when Redis hashtags are not available"""
     redis = await get_redis()
+
+    # Check type - if number, search by exact test_id match
+    if data.type == "number":
+        # First check Redis using search index
+        query = Query(f'@test_id:{data.text}').paging(0, 1)
+        cashe_result = await redis.ft('ind:public_tests').search(query)
+
+        if cashe_result.docs and len(cashe_result.docs) > 0:
+            test = cashe_result.docs[0]
+            return {
+                "results": [{
+                    "test_id": test.test_id,
+                    "id": test.id_test,
+                    "nom": test.nom,
+                    "fan": test.fan,
+                    "tavsif": test.tavsif,
+                    "istime": test.istime,
+                    "time": test.time,
+                    "created": test.created,
+                    "hash_url": generate_hash_url(int(test.id_test), test.test_id),
+                    "savollar_soni": test.savollar_soni,
+                    "hashtag_names": test.hashtag.split(),
+                    "score": test.score
+                }],
+                "last_score": None,
+                "last_id": None
+            }
+
+        # If not found in Redis, search in database
+        stmt = (
+            select(
+                Testlar,
+                func.array_agg(distinct(Hashtag.name)).label("hashtags")
+            )
+            .outerjoin(
+                TestlarHashtag,
+                and_(
+                    TestlarHashtag.test_id == Testlar.id,
+                    TestlarHashtag.tag.is_(True)
+                )
+            )
+            .outerjoin(
+                Hashtag,
+                Hashtag.id == TestlarHashtag.hashtag_id
+            )
+            .where(Testlar.test_id == str(data.text))
+            .group_by(Testlar.id)
+        )
+        result = await db.execute(stmt)
+        row = result.first()
+
+        if row:
+            test, hashtag_names = row
+            return {
+                "results": [{
+                    "test_id": test.test_id,
+                    "id": test.id,
+                    "nom": test.nom,
+                    "fan": test.fan,
+                    "tavsif": test.tavsif,
+                    "istime": test.istime,
+                    "time": test.time,
+                    "created": created_to_human_time(test.created),
+                    "hash_url": generate_hash_url(test.id, test.test_id),
+                    "savollar_soni": 0,
+                    "hashtag_names": hashtag_names if hashtag_names else [],
+                    "score": int(test.created.timestamp())
+                }],
+                "last_score": None,
+                "last_id": None
+            }
+        return {"results": [], "last_score": None, "last_id": None}
+
     words = data.text.lower().split()
 
     last_score = None
