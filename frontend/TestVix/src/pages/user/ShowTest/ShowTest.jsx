@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useSearchCon } from '../../../context/SearchContext'
 import { getShowTest } from '../../../api/request_testlar'
+import { startSavol } from '../../../api/request_savollar'
 import { AuthContext } from '../../../context/AuthContext'
 import { human_time } from '../../../lib/func'
 
@@ -90,6 +91,7 @@ export default function ShowTest() {
     const star_agv = (star_each_much.reduce((sum, item, index) => sum + item * (5 - index), 0) / star_much).toFixed(1)
     const displayStarCount = hoveredStar || selectedStar
     const [animate, setAnimate] = useState(false);
+    const [loading, setLoading] = useState(false);
     const totalCommentCount = comments.reduce((sum, comment) => sum + 1 + comment.replies.length, 0)
 
     useEffect(() => {
@@ -247,7 +249,17 @@ export default function ShowTest() {
         setReplyingTo(null)
     }
 
-    const handleStartNav = () => {
+    const handleStartNav = async () => {
+        setLoading(true)
+        
+        // Testni boshlaganligini backendga yuboramiz
+        const startData = {
+            id: Number(id),
+            test_id: test_id,
+            hash_url: hash_url
+        }
+        await startSavol(startData)
+        
         localStorage.removeItem('test_answers')
         localStorage.removeItem('test_answered')
         localStorage.removeItem('test_result')
@@ -364,8 +376,19 @@ export default function ShowTest() {
                     </div>
 
                     <div className='start_div'>
-                        <button className='btn' onClick={handleStartNav}>
-                            Boshlash
+                        <button 
+                            className='btn' 
+                            onClick={handleStartNav}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Yuklanmoqda...
+                                </>
+                            ) : (
+                                "Boshlash"
+                            )}
                         </button>
                     </div>
 

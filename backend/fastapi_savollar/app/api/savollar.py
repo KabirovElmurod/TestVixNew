@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from ...app.session import get_db
-from ...app.schemas.savollar import SavollarCreate, SavollarDelete, SavollarUpdate, SavollarRead, GetSavollarRequest, GetSavol, FinishSavol
+from ...app.session import get_db, get_redis
+from ...app.schemas.savollar import SavollarCreate, SavollarDelete, SavollarUpdate, SavollarRead, GetSavollarRequest, GetSavol, FinishSavol, StartSavol
 from ...app.crud.savollar import (
     create_savollar,
     get_savollar_by_id,
@@ -16,6 +16,7 @@ from ...app.crud.savollar import (
     get_public_savollar,
     update_savol,
     delete_savollar,
+    start_test,
     finish_check_savol
 )
 from ...app.core.security import get_current_user
@@ -123,10 +124,25 @@ async def delete_savollar_endpoint(
     else:
         return {"message": "Savolni o'chirishda xatolik yuz berdi", "status": False}
 
+@router.post("/start_savol")
+async def start_savol(
+    data: StartSavol,
+    db: AsyncSession = Depends(get_db),
+    redis_client=Depends(get_redis),
+    current_user=Depends(get_current_user)
+):
+    if current_user.get('status') == False:
+        return {'message': 'Foydalanuvchi tekshirishda xatolik yuz berdi', 'status': False, 'user': False}
+    if not verify_hash_url(data.id, data.test_id, data.hash_url):
+        return {'message': 'Tekshirishda xatolik yuz berdi', 'status': False}
+
+    return await start_test(db, data, current_user.get('id'), redis_client)
+
 @router.post("/finish_savol")
 async def finish_savol(
     data: FinishSavol,
     db: AsyncSession = Depends(get_db),
+    redis_client=Depends(get_redis),
     current_user=Depends(get_current_user)
 ):
     if current_user.get('status') == False:
@@ -142,4 +158,4 @@ async def finish_savol(
             return {'message': 'Tekshirishda xatolik yuz berdi', 'status': False}
     # for item in data.answers:
 
-    return await finish_check_savol(db, data, current_user.get('id'))
+    return await finish_check_savol(db, data, current_user.get('id'), redis_client)

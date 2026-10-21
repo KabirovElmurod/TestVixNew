@@ -83,6 +83,18 @@ export const finishSavol = async (data) => {
     return res.json();
 }
 
+export const startSavol = async (data) => {
+    const res = await fetch(`${API_URl_savollar}/start_savol`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    return res.json();
+}
+
 // Admin-specific API functions for questions and variants
 export const adminGetQuestionsByTestId = async (testId) => {
     console.log('test_id=>', testId);

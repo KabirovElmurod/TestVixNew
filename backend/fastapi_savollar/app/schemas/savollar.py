@@ -32,6 +32,11 @@ class FinishSavol(BaseModel):
     answers : list | dict
     time_spent: int = 0
 
+class StartSavol(BaseModel):
+    id: int
+    test_id: int | str
+    hash_url: str
+
 class SavollarUpdate(BaseModel):
     test_id: int | str | None = None
     key: str | None = None

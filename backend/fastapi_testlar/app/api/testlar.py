@@ -22,7 +22,8 @@ from ...app.crud.testlar import (
     get_user_statistics,
     get_hourly_statistics,
     get_test_statistics_by_date_range,
-    get_test_top_results
+    get_test_top_results,
+    get_test_stats
 )
 from ...app.core.security import get_current_user
 from ...app.wrong import wrong
@@ -231,3 +232,15 @@ async def get_test_top_results_endpoint(
         return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
 
     return await get_test_top_results(db, test_id, limit)
+
+
+@router.get("/test_stats")
+async def get_test_stats_endpoint(
+    test_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    if current_user.get('status') == False:
+        return {"message": "Foydalanuvchi tekshirishda xatolik yuz berdi", "status": False, 'user': False}
+
+    return await get_test_stats(db, test_id)

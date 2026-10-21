@@ -25,6 +25,17 @@ export default function StatsCards({ stats }) {
           +8%
         </div>
       </div>
+      <div className="stat-card gradient-yellow">
+        <div className="stat-icon">⏳</div>
+        <div className="stat-content">
+          <div className="stat-value">{stats.in_progress || 0}</div>
+          <div className="stat-label">Jarayonda</div>
+        </div>
+        <div className="stat-trend neutral">
+          <i className="bi bi-dash"></i>
+          ---
+        </div>
+      </div>
       <div className="stat-card gradient-purple">
         <div className="stat-icon">⭐</div>
         <div className="stat-content">

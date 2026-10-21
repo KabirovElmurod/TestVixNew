@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getTestStatisticsByDateRange, getTestTopResults } from '../../api/request_testlar';
+import { getTestStatisticsByDateRange, getTestTopResults, getTestStats } from '../../api/request_testlar';
 import { AuthContext } from '../../context/AuthContext';
 import Title from '../../components/ui/Title';
 import Message from '../../components/ui/Message';
@@ -28,6 +28,7 @@ export default function TestStatistics() {
   const navigate = useNavigate();
   const [statistics, setStatistics] = useState([]);
   const [topResults, setTopResults] = useState([]);
+  const [inProgress, setInProgress] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingTop, setLoadingTop] = useState(true);
   const [message, setMessage] = useState('');
@@ -101,10 +102,22 @@ export default function TestStatistics() {
 
   useEffect(() => {
     if (testId) {
+      fetchTestStats();
       fetchStatistics();
       fetchTopResults();
     }
   }, [testId]);
+
+  const fetchTestStats = async () => {
+    try {
+      const res = await getTestStats(testId);
+      if (res && res.in_progress !== undefined) {
+        setInProgress(res.in_progress);
+      }
+    } catch (error) {
+      console.error('Test stats fetch error:', error);
+    }
+  };
 
   const fetchStatistics = async () => {
     try {
@@ -373,6 +386,15 @@ export default function TestStatistics() {
                 <div className='card_content'>
                   <h4>Jami urinishlar</h4>
                   <p>{summaryStats.totalAttempts}</p>
+                </div>
+              </div>
+              <div className='summary_card'>
+                <div className='card_icon'>
+                  <i className='bi bi-clock-history'></i>
+                </div>
+                <div className='card_content'>
+                  <h4>Jarayonda</h4>
+                  <p>{inProgress}</p>
                 </div>
               </div>
               <div className='summary_card'>

@@ -10,17 +10,26 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const res = await loginUser({ username, password });
+    setLoading(false);
     if (res.status) {
       handleRole(res.user)
       login(true);
       localStorage.setItem('user', JSON.stringify(res.user))
       localStorage.setItem('user_avatar', res.user.avatar ? getAvatar(res.user.avatar) : null)
-      navigate('/');
+
+      // Navigate based on role
+      if (res.user?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } else {
       setMessage(res.message);
     }
@@ -63,7 +72,20 @@ export default function Login() {
                 onClick={() => setShowPassword(!showPassword)}></i>
             </div>
           </div>
-          <button className="btn btn-primary w-full">Kirish</button>
+          <button 
+            className="btn btn-primary w-full" 
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Yuklanmoqda...
+              </>
+            ) : (
+              "Kirish"
+            )}
+          </button>
         </form>
 
         <div className="login-footer">

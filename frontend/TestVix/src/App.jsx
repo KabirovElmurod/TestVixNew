@@ -70,9 +70,12 @@ function AppContent() {
             role?.role == 'user' ? (
               <User></User>
             )
+              : role?.role == 'admin' ? (
+                <Admin></Admin>
+              )
               :
-              // (null)
-              (<Admin></Admin>)
+              // Default to user if role is not set or invalid
+              (<User></User>)
           )
             :
             (<NoUser></NoUser>)

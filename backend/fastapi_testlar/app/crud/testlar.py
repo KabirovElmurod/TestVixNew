@@ -896,11 +896,12 @@ async def delete_testlar(db: AsyncSession, key: str, id: str | int, user_id: int
 async def get_user_statistics(db: AsyncSession, user_id: int, limit: int = 100, test_id: str = None):
     cache_key = f"user_stats:{user_id}:{test_id or 'all'}"
     redis = await get_redis()
-    
+
     cached_data = await redis.get(cache_key)
     if cached_data:
         return json.loads(cached_data)
-    
+
+    # Get completed results
     stmt = (
         select(
             Natijalar,
@@ -912,15 +913,15 @@ async def get_user_statistics(db: AsyncSession, user_id: int, limit: int = 100, 
         .where(Natijalar.user_id == user_id)
         .where(Natijalar.isfinish == True)
     )
-    
+
     if test_id:
         stmt = stmt.where(Testlar.test_id == test_id)
-    
+
     stmt = stmt.order_by(Natijalar.created.desc()).limit(limit)
-    
+
     result = await db.execute(stmt)
     rows = result.all()
-    
+
     statistics = []
     for natija, test_nom, test_fan, test_id in rows:
         statistics.append({
@@ -934,10 +935,29 @@ async def get_user_statistics(db: AsyncSession, user_id: int, limit: int = 100, 
             "time_spent": natija.time_spent,
             "created": natija.created.isoformat()
         })
-    
-    await redis.set(cache_key, json.dumps(statistics), ex=300)
-    
-    return statistics
+
+    # Get in-progress count
+    in_progress_stmt = (
+        select(func.count(Natijalar.id))
+        .join(Testlar, Natijalar.test_id == Testlar.id)
+        .where(Natijalar.user_id == user_id)
+        .where(Natijalar.isfinish == False)
+    )
+
+    if test_id:
+        in_progress_stmt = in_progress_stmt.where(Testlar.test_id == test_id)
+
+    in_progress_result = await db.execute(in_progress_stmt)
+    in_progress = in_progress_result.scalar() or 0
+
+    response = {
+        "statistics": statistics,
+        "in_progress": in_progress
+    }
+
+    await redis.set(cache_key, json.dumps(response), ex=300)
+
+    return response
 
 
 async def get_hourly_statistics(db: AsyncSession, user_id: int, date: str = None):
@@ -1193,6 +1213,21 @@ async def get_test_top_results(db: AsyncSession, test_id: str, limit: int = 100)
         })
 
     return statistics
+
+
+async def get_test_stats(db: AsyncSession, test_id: str):
+    # Get in-progress count (isfinish == False)
+    in_progress_result = await db.execute(
+        select(func.count(Natijalar.id))
+        .join(Testlar, Natijalar.test_id == Testlar.id)
+        .where(Testlar.test_id == test_id)
+        .where(Natijalar.isfinish == False)
+    )
+    in_progress = in_progress_result.scalar() or 0
+
+    return {
+        "in_progress": in_progress
+    }
 
 
 

@@ -12,13 +12,14 @@ function check_password(password) {
 
 
 export default function Register() {
-  const { login } = useContext(AuthContext);
+  const { login, handleRole } = useContext(AuthContext);
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   // const {token, login} = useContext(AuthContext)
 
@@ -38,9 +39,10 @@ export default function Register() {
       return;
     }
     setMessage("");
-
+    setLoading(true);
 
     const regRes = await registerUser({ nickname, email, username, password });
+    setLoading(false);
 
     if (!regRes.status && regRes.message) {
       setMessage(regRes.message);
@@ -52,9 +54,16 @@ export default function Register() {
 
     // console.log('data_register', res);
     if (regRes.status) {
+      handleRole(regRes.user)
       login(true);
-      localStorage.setItem('user', JSON.stringify(res.user))
-      navigate('/');
+      localStorage.setItem('user', JSON.stringify(regRes.user))
+
+      // Navigate based on role
+      if (regRes.user?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } else {
       navigate('/login');
     }
@@ -134,7 +143,20 @@ export default function Register() {
               ></i>
             </div>
           </div> */}
-          <button className="btn btn-primary w-full">Ro'yxatdan o'tish</button>
+          <button 
+            className="btn btn-primary w-full" 
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Yuklanmoqda...
+              </>
+            ) : (
+              "Ro'yxatdan o'tish"
+            )}
+          </button>
         </form>
 
         <div className="login-footer" style={{ marginTop: '12px' }}>

@@ -15,7 +15,8 @@ async def create_user(db: AsyncSession, username: str, password: str, email: str
     return user
 
 from sqlalchemy import select
-from ...app.models.user import User,Testlar, Savollar, Variantlar, Hashtag, TestlarHashtag, Natijalar
+from ...app.models.user import User,Testlar, Savollar, Variantlar, Hashtag, TestlarHashtag
+from fastapi_savollar.app.models.savollar import Natijalar
 
 
 async def get_user_by_username(db: AsyncSession, username: str):
@@ -306,18 +307,27 @@ async def get_user_stats(db: AsyncSession, user_id: int, redis_client=None):
                 return json.loads(cached_stats)
         except Exception as e:
             print(f"Redis error: {e}")
-    
+
     # Database query
     test_count_result = await db.execute(
         select(func.count(Testlar.id)).where(Testlar.user_id == user_id)
     )
     test_count = test_count_result.scalar() or 0
-    
+
     result_count_result = await db.execute(
         select(func.count(Natijalar.id)).where(Natijalar.user_id == user_id)
     )
     result_count = result_count_result.scalar() or 0
-    
+
+    # Count in-progress tests (isfinish == False)
+    in_progress_result = await db.execute(
+        select(func.count(Natijalar.id)).where(
+            Natijalar.user_id == user_id,
+            Natijalar.isfinish == False
+        )
+    )
+    in_progress = in_progress_result.scalar() or 0
+
     # Calculate average score
     avg_score = 0
     if result_count > 0:
@@ -325,7 +335,7 @@ async def get_user_stats(db: AsyncSession, user_id: int, redis_client=None):
             select(Natijalar).where(Natijalar.user_id == user_id, Natijalar.isfinish == True)
         )
         results_list = results.scalars().all()
-        
+
         if results_list:
             total_score = 0
             for result in results_list:
@@ -333,7 +343,7 @@ async def get_user_stats(db: AsyncSession, user_id: int, redis_client=None):
                     score = (result.true_son / result.sum_son) * 100
                     total_score += score
             avg_score = round(total_score / len(results_list), 1) if results_list else 0
-    
+
     # Calculate streak (consecutive days with activity)
     streak = 0
     if result_count > 0:
@@ -344,12 +354,12 @@ async def get_user_stats(db: AsyncSession, user_id: int, redis_client=None):
             .limit(30)
         )
         result_dates = [row[0].date() for row in results.all()]
-        
+
         if result_dates:
             today = datetime.now().date()
             streak = 0
             current_date = today
-            
+
             for date in result_dates:
                 if date == current_date:
                     streak += 1
@@ -358,21 +368,22 @@ async def get_user_stats(db: AsyncSession, user_id: int, redis_client=None):
                     current_date -= timedelta(days=1)
                 else:
                     break
-    
+
     stats = {
         "test_count": test_count,
         "result_count": result_count,
+        "in_progress": in_progress,
         "avg_score": avg_score,
         "streak": streak
     }
-    
+
     # Cache in Redis for 5 minutes
     if redis_client:
         try:
             await redis_client.setex(cache_key, 300, json.dumps(stats))
         except Exception as e:
             print(f"Redis caching error: {e}")
-    
+
     return stats
 
 

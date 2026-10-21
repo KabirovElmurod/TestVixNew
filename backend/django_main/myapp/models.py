@@ -81,6 +81,7 @@ class Natijalar(models.Model):
     isfinish = models.BooleanField(default=False)
     # time_spent = Column(Integer, default=0)
     time_spent = models.IntegerField(default=0)
+    start_time = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:

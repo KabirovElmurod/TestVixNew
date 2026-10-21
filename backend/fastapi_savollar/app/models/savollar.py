@@ -56,6 +56,6 @@ class Natijalar(Base):
     answer = Column(JSON, nullable=True)
     isfinish = Column(Boolean, default=False)
     created = Column(DateTime, default=func.now())
-    isfinish = Column(Boolean, default=False)
+    # isfinish = Column(Boolean, default=False)
     time_spent=Column(Integer, default=0)
-    created = Column(DateTime, default=func.now())
+    # created = Column(DateTime, default=func.now())

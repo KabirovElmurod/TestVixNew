@@ -1104,30 +1104,111 @@ async def delete_savollar(db: AsyncSession, test_id: str|int, savol_id: str|int)
     return True
 
 
-async def finish_check_savol(db: AsyncSession, data, user_id):
+async def start_test(db: AsyncSession, data, user_id, redis_client=None):
+    """
+    Testni boshlaganligini qayd qiladi.
+    Agar allaqachon boshlangan bo'lsa, start_time yangilanmaydi.
+    """
+    from datetime import datetime
+    
+    # Avval natija borligini tekshiramiz
+    existing_result = await db.execute(
+        select(Natijalar).where(
+            Natijalar.user_id == user_id,
+            Natijalar.test_id == data.id,
+            Natijalar.isfinish == False
+        )
+    )
+    existing_natija = existing_result.scalars().first()
+    
+    if existing_natija:
+        # Allaqachon boshlangan, start_time yangilamasak bo'ladi
+        return {"status": True, "message": "Test allaqachon boshlangan"}
+    
+    # Yangi natija yaratamiz
+    natija_data = {
+        "user_id": user_id,
+        "test_id": data.id,
+        "sum_son": 0,
+        "true_son": 0,
+        "false_son": 0,
+        "answer": {},
+        "isfinish": False,
+        "time_spent": 0,
+        "created": datetime.now()
+    }
+    
+    stmt = pg_insert(Natijalar).values(natija_data)
+    await db.execute(stmt)
+    await db.commit()
+
+    # Redis cache invalidation
+    if redis_client:
+        try:
+            cache_keys = [
+                f"user_stats:{user_id}",
+                f"user_results:{user_id}:*",
+                f"user_profile:{user_id}"
+            ]
+            for key_pattern in cache_keys:
+                if '*' in key_pattern:
+                    keys = await redis_client.keys(key_pattern)
+                    if keys:
+                        await redis_client.delete(*keys)
+                else:
+                    await redis_client.delete(key_pattern)
+        except Exception as e:
+            print(f"Redis cache invalidation error: {e}")
+
+    return {"status": True, "message": "Test boshlandi"}
+
+
+async def finish_check_savol(db: AsyncSession, data, user_id, redis_client=None):
     true_son = 0
     false_son = 0
     answers_data = data.answers
 
-    # Testdagi barcha savol ID larini bazadan olamiz
-    all_savollar_result = await db.execute(
-        select(Savollar.id).where(Savollar.test_id == data.id)
+    # Test va natijani parallel ravishda olamiz (2 ta so'rov bir vaqtda)
+    import asyncio
+    test_result, existing_natija = await asyncio.gather(
+        db.execute(select(Testlar).where(Testlar.id == data.id)),
+        db.execute(select(Natijalar).where(
+            Natijalar.user_id == user_id,
+            Natijalar.test_id == data.id
+        ))
     )
-    all_savol_ids = [row.id for row in all_savollar_result]
+    test = test_result.scalars().first()
+    natija = existing_natija.scalars().first()
+
+    if not test:
+        return {"status": False, "message": "Test topilmadi"}
+
+    # Test vaqtini tekshiramiz
+    time_spent = data.time_spent if hasattr(data, 'time_spent') else 0
+    if test.istime and test.time:
+        if time_spent > test.time:
+            return {"status": False, "message": f"Test vaqti o'tib ketdi ({time_spent} sekund, ruxsat etilgan: {test.time} sekund)"}
+
+    # Barcha savollar va ularning to'g'ri variantlarini bitta so'rovda olamiz (JOIN)
+    savol_variant_result = await db.execute(
+        select(Savollar.id, Variantlar.id.label('true_variant_id'))
+        .outerjoin(Variantlar, (Savollar.id == Variantlar.savol_id) & (Variantlar.is_true == True))
+        .where(Savollar.test_id == data.id)
+    )
+    # {savol_id: true_variant_id} map yaratamiz
+    true_variants_map = {}
+    all_savol_ids = set()
+    for row in savol_variant_result:
+        all_savol_ids.add(row.id)
+        if row.true_variant_id:
+            true_variants_map[row.id] = row.true_variant_id
 
     if not all_savol_ids:
         return {"status": False, "message": "Testda savollar mavjud emas."}
 
-    # Barcha kerakli to'g'ri variantlarni bitta so'rovda bazadan olamiz
-    true_variants_result = await db.execute(
-        select(Variantlar.savol_id, Variantlar.id)
-        .where(Variantlar.savol_id.in_(all_savol_ids))
-        .where(Variantlar.is_true == True)
-    )
-    # {savol_id: true_variant_id} ko'rinishidagi map yaratamiz
-    true_variants_map = {row.savol_id: row.id for row in true_variants_result}
     answers_result = {}
 
+    # Barcha savollar uchun ma'lumot yaratamiz
     for savol_id in all_savol_ids:
         savol_id_str = str(savol_id)
         answer = answers_data.get(savol_id_str)
@@ -1136,7 +1217,7 @@ async def finish_check_savol(db: AsyncSession, data, user_id):
         is_checked = False
         selected_v_id = None
 
-        if answer: # Foydalanuvchi bu savolga javob bergan
+        if answer:  # Foydalanuvchi bu savolga javob bergan
             is_checked = True
             selected_v_id = answer.get('v_id')
             if true_variant_id is not None and selected_v_id == true_variant_id:
@@ -1144,10 +1225,10 @@ async def finish_check_savol(db: AsyncSession, data, user_id):
                 is_correct = True
             else:
                 false_son += 1
-        else: # Foydalanuvchi javob bermagan
+        else:  # Foydalanuvchi javob bermagan
             false_son += 1
 
-        answers_result[savol_id] ={
+        answers_result[savol_id] = {
             'savol_id': savol_id,
             'v_id': selected_v_id,
             'is_true': is_correct,
@@ -1155,25 +1236,55 @@ async def finish_check_savol(db: AsyncSession, data, user_id):
             'is_true_id': true_variant_id
         }
 
-    # Natijalarni bazaga yozish uchun ma'lumotlarni tayyorlaymiz
-    natija_data = {
-        "user_id": user_id,
-        "test_id": data.id,
+    if natija:
+        # Mavjud natijani yangilaymiz
+        natija.sum_son = len(all_savol_ids)
+        natija.true_son = true_son
+        natija.false_son = false_son
+        natija.answer = answers_result
+        natija.isfinish = True
+        natija.time_spent = time_spent
+    else:
+        # Yangi natija yaratamiz
+        natija_data = {
+            "user_id": user_id,
+            "test_id": data.id,
+            "sum_son": len(all_savol_ids),
+            "true_son": true_son,
+            "false_son": false_son,
+            "answer": answers_result,
+            "isfinish": True,
+            "time_spent": time_spent
+        }
+        natija = Natijalar(**natija_data)
+        db.add(natija)
+
+    await db.commit()
+
+    # Redis cache invalidation
+    if redis_client:
+        try:
+            cache_keys = [
+                f"user_stats:{user_id}",
+                f"user_results:{user_id}:*",
+                f"user_profile:{user_id}"
+            ]
+            for key_pattern in cache_keys:
+                if '*' in key_pattern:
+                    keys = await redis_client.keys(key_pattern)
+                    if keys:
+                        await redis_client.delete(*keys)
+                else:
+                    await redis_client.delete(key_pattern)
+        except Exception as e:
+            print(f"Redis cache invalidation error: {e}")
+
+    result_data = {
         "sum_son": len(all_savol_ids),
         "true_son": true_son,
         "false_son": false_son,
         "answer": answers_result,
         "isfinish": True,
-        "time_spent": data.time_spent if hasattr(data, 'time_spent') else 0
+        "time_spent": time_spent
     }
-
-    # PostgreSQL uchun "upsert" (ON CONFLICT DO UPDATE) so'rovi
-    stmt = pg_insert(Natijalar).values(natija_data)
-    # stmt = stmt.on_conflict_do_update(
-    #     index_elements=['user_id', 'test_id'],  # Bu ustunlar birgalikda unikal bo'lishi kerak
-    #     set_=natija_data
-    # )
-    await db.execute(stmt)
-    await db.commit()
-
-    return {"status": True, "message": "Test muvaffaqiyatli yakunlandi!", "result": natija_data}
+    return {"status": True, "message": "Test muvaffaqiyatli yakunlandi!", "result": result_data}

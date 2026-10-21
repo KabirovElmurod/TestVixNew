@@ -53,7 +53,14 @@ export default function Statistik() {
         window.location.href = '/';
         return;
       }
-      setStatistics(Array.isArray(res) ? res : []);
+      // Handle both old array format and new object format
+      if (Array.isArray(res)) {
+        setStatistics(res);
+      } else if (res.statistics) {
+        setStatistics(res.statistics);
+      } else {
+        setStatistics([]);
+      }
     } catch (error) {
       console.error('Statistics fetch error:', error);
       setMessage('Statistikani yuklashda xatolik yuz berdi');

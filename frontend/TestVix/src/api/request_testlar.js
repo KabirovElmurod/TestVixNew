@@ -370,3 +370,14 @@ export const getTestTopResults = async (testId, limit = 100) => {
     });
     return res.json();
 };
+
+export const getTestStats = async (testId) => {
+    const res = await fetch(`${API_URl_testlar}/test_stats?test_id=${testId}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    return res.json();
+};
