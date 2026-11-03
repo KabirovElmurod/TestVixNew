@@ -21,7 +21,12 @@ const Register = lazy(() => import("../pages/nouser/Register"));
 const NoPage = lazy(() => import("../pages/NoPage"));
 export default function User() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={
+            <div className="page-loading">
+                <div className="spinner-border" role="status"></div>
+                <span>Sahifa yuklanmoqda...</span>
+            </div>
+        }>
             <Routes>
                 <Route path="/" element={<HomeUser></HomeUser>} />
                 <Route path="/add_test" element={<AddTest></AddTest>} />

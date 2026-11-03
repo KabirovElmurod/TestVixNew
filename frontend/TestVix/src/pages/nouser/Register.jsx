@@ -49,10 +49,6 @@ export default function Register() {
       return;
     }
 
-    // // 🔥 avtomatik login
-    // const res = await loginUser({ username, password });
-
-    // console.log('data_register', res);
     if (regRes.status) {
       handleRole(regRes.user)
       login(true);
@@ -126,23 +122,7 @@ export default function Register() {
               ></i>
             </div>
           </div>
-          {/* <div className="form-group" style={{ marginBottom: '8px' }}>
-            <label>Parolni tasdiqlang</label>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <input 
-                type={showConfirmPassword ? "text" : "password"} 
-                placeholder="••••••••" 
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)} 
-                required
-                style={{ width: '100%', paddingRight: '35px' }}
-              />
-              <i 
-                className={`eye-icon-style bi ${showConfirmPassword ? "bi-eye-fill" : "bi-eye-slash-fill"}`} 
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              ></i>
-            </div>
-          </div> */}
+          
           <button 
             className="btn btn-primary w-full" 
             type="submit"

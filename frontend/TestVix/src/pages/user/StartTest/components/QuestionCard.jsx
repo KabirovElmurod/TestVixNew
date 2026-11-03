@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import SVGShow from '../../../../components/ui/SVGShow';
-import MathText from '../../../../components/MathText';
+import React, { useState, lazy, Suspense } from 'react';
+const SVGShow = lazy(() => import('../../../../components/ui/SVGShow'));
+const MathText = lazy(() => import('../../../../components/MathText'));
 
 const QuestionCard = ({ question, index, selectedAnswer, onAnswerSelect }) => {
   const [svg, setSvg] = useState('');
@@ -28,10 +28,16 @@ const QuestionCard = ({ question, index, selectedAnswer, onAnswerSelect }) => {
       </div>
 
       <h2 className="question-body">
-        <MathText text={question.text} />
+        <Suspense fallback={<span className="math-loading">Loading...</span>}>
+          <MathText text={question.text} />
+        </Suspense>
       </h2>
 
-      {json && <SVGShow svg={svg} setSVG={setSvg} json={json} />}
+      {json && (
+        <Suspense fallback={<div className="svg-loading">Loading diagram...</div>}>
+          <SVGShow svg={svg} setSVG={setSvg} json={json} />
+        </Suspense>
+      )}
 
       <div className="options-grid">
         {question.variantlar.map((option, optionIndex) => (
@@ -42,7 +48,9 @@ const QuestionCard = ({ question, index, selectedAnswer, onAnswerSelect }) => {
           >
             <span className="prefix">{String.fromCharCode(65 + optionIndex)}</span>
             <span className="text">
-              <MathText text={option.text} />
+              <Suspense fallback={<span>Loading...</span>}>
+                <MathText text={option.text} />
+              </Suspense>
             </span>
           </div>
         ))}

@@ -15,6 +15,7 @@ const StartTest = () => {
   const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
   const questionRefs = useRef(new Map());
+  const loadMoreRef = useRef(null);
   const [activeQuestionId, setActiveQuestionId] = useState(null);
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState({});
@@ -30,8 +31,13 @@ const StartTest = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [lastId, setLastId] = useState()
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const getSavollarData = async (last_id) => {
+  const getSavollarData = async (last_id = null) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
     let data = {
       id: Number(id),
       test_id: testID,
@@ -49,9 +55,11 @@ const StartTest = () => {
     if (response.user == false) {
       logout();
       navigate('/login');
+      setIsLoading(false);
       return;
     }
     if (response.status == false) {
+      setIsLoading(false);
       return
       // navigate('');
     }
@@ -80,9 +88,15 @@ const StartTest = () => {
       ...response.savollar
     ]));
     setLastId(response.last_id)
+
+    // Agar last_id bo'lsa, hali yana savollar bor
     if (response.last_id) {
-      await getSavollarData(response.last_id)
+      setHasMore(true);
+    } else {
+      setHasMore(false);
     }
+
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -108,10 +122,8 @@ const StartTest = () => {
       setAnsweredQuestions(JSON.parse(savedAnsweredQuestions));
     }
 
-    const gsd = async () => {
-      await getSavollarData();
-    }
-    gsd()
+    // Load initial batch of questions
+    getSavollarData();
 
     // Auto-start timer immediately
     setIsTimerRunning(true);
@@ -165,6 +177,28 @@ const StartTest = () => {
     });
     return () => observer.disconnect();
   }, [questions]);
+
+  // Load more questions when scrolling to bottom
+  useEffect(() => {
+    const loadMoreObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          getSavollarData(lastId);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      loadMoreObserver.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        loadMoreObserver.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [hasMore, isLoading, lastId]);
 
   const handleAnswerSelect = (questionId, variantIndex) => {
     const question = questions.find(q => q.id === questionId);
@@ -294,6 +328,30 @@ const StartTest = () => {
                   />
                 </div>
               ))}
+
+              {/* Load more trigger */}
+              {hasMore && (
+                <div ref={loadMoreRef} className="load-more-trigger">
+                  {isLoading ? (
+                    <div className="loading-questions">
+                      <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+                      <span>Savollar yuklanmoqda...</span>
+                    </div>
+                  ) : (
+                    <div className="scroll-hint">
+                      <i className="bi bi-chevron-down"></i>
+                      <span>Scroll qiling yana savollar uchun</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!hasMore && questions.length > 0 && (
+                <div className="all-questions-loaded">
+                  <i className="bi bi-check-circle"></i>
+                  <span>Barcha savollar yuklandi</span>
+                </div>
+              )}
             </div>
           </>
         )}

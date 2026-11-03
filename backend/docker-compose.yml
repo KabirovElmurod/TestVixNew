@@ -1,5 +1,9 @@
 version: "3.9"
 
+networks:
+  testvix-network:
+    driver: bridge
+
 services:
   db:
     image: postgres:16
@@ -11,6 +15,13 @@ services:
       POSTGRES_PASSWORD: qoty_qouy_2006
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testvixdocker -d testvixdocker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - testvix-network
 
 
   nginx:
@@ -25,6 +36,8 @@ services:
       - testlar
       - savollar
       - comment
+    networks:
+      - testvix-network
 
   redis:
     image: redis/redis-stack:latest
@@ -36,6 +49,13 @@ services:
       - redisdata:/data
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - testvix-network
 
   account:
     build: ./fastapi_account
@@ -46,7 +66,12 @@ services:
     # ports:
     #   - "8001:8000"
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    networks:
+      - testvix-network
 
   testlar:
     build: ./fastapi_testlar
@@ -57,9 +82,14 @@ services:
     # ports:
     #   - "8002:8000"
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
     env_file:
       - .env
+    networks:
+      - testvix-network
 
   savollar:
     build: ./fastapi_savollar
@@ -72,7 +102,12 @@ services:
     # ports:
     #   - "8003:8000"
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    networks:
+      - testvix-network
   
   comment:
     build: ./fastapi_comment
@@ -83,7 +118,12 @@ services:
     # ports:
     #   - "8004:8000"
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    networks:
+      - testvix-network
   
   frontend:
     build: ../frontend/TestVix
@@ -96,6 +136,8 @@ services:
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
+    networks:
+      - testvix-network
 
 
   celery:
@@ -105,13 +147,47 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - redis
-      - testlar
+      redis:
+        condition: service_started
+      testlar:
+        condition: service_started
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     env_file:
       - .env
+    networks:
+      - testvix-network
+
+  # Locust Master
+  locust-master:
+    image: locustio/locust
+    ports:
+      - "8089:8089"
+    command: -f /locust/locustfile.py --master --host=http://nginx
+    volumes:
+      - ./locustfile.py:/locust/locustfile.py
+    depends_on:
+      - nginx
+    networks:
+      - testvix-network
+    profiles:
+      - loadtest  # Faqat shu profile bilan ishga tushadi
+
+  # Locust Worker (bir nechta qo'shishingiz mumkin)
+  locust-worker:
+    image: locustio/locust
+    command: -f /locust/locustfile.py --worker --master-host=locust-master
+    volumes:
+      - ./locustfile.py:/locust/locustfile.py
+    depends_on:
+      - locust-master
+    networks:
+      - testvix-network
+    deploy:
+      replicas: 2  # 2 ta worker, ko'paytirishingiz mumkin
+    profiles:
+      - loadtest  # Faqat shu profile bilan ishga tushadi
   
   # app:
   #   build: .
