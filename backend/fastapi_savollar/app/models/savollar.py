@@ -16,6 +16,7 @@ class Testlar(Base):
     ispublic = Column(Boolean, default=False)
     istime = Column(Boolean, default=False)
     time = Column(Integer, nullable=True)
+    question_count = Column(Integer, nullable=True)
     created = Column(DateTime, default=func.now())
 
     def __str__(self):

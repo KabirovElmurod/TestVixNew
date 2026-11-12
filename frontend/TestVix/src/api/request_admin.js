@@ -1,5 +1,6 @@
+import API_main from "./_url";
 
-let API = 'http://localhost/api1/users'
+let API = API_main + '/api1/users'
 // let API = '/users'
 
 export const get_users = async (data) => {

@@ -23,6 +23,9 @@ export default function AddTest() {
     const [visiable, setVisiable] = useState(editData ? editData.ispublic : true);
     const [istime, setIsTime] = useState(editData ? editData.istime : true);
     const [time, setTime] = useState(editData?.time || 15);
+    const [savollarSoni, setSavollarSoni] = useState(
+        editData?.question_count ? String(editData.question_count) : ''
+    );
     const [key, setKey] = useState(editData?.key || '');
     const [jsonData, setJsonData] = useState(null);
     const [is_json, setIsJson] = useState(false);
@@ -51,6 +54,9 @@ export default function AddTest() {
                 setVisiable(formattedData.ispublic);
                 setIsTime(formattedData.istime);
                 setTime(formattedData.time);
+                setSavollarSoni(
+                    formattedData.question_count ? String(formattedData.question_count) : ''
+                );
                 setMessage('JSON ma\'lumotlari muvaffaqiyatli yuklandi!');
                 setMessageType('success');
             } else {
@@ -93,13 +99,24 @@ export default function AddTest() {
             return;
         }
 
+        let question_count = null;
+        if (savollarSoni !== '' && savollarSoni !== null && savollarSoni !== undefined) {
+            question_count = Number(savollarSoni);
+            if (isNaN(question_count) || question_count <= 0 || !Number.isInteger(question_count)) {
+                setMessage('Savollar soni musbat butun son bo\'lishi shart!');
+                setMessageType('error');
+                return;
+            }
+        }
+
         let data = {
             nom: nom,
             fan: fan,
             tavsif: tavsif,
             ispublic: visiable,
             istime: istime,
-            time: time
+            time: time,
+            question_count: question_count
         };
 
         if (editData) {
@@ -128,6 +145,7 @@ export default function AddTest() {
                 setNom('');
                 setFan('');
                 setTavsif('');
+                setSavollarSoni('');
                 setJsonData(null);
             } else {
                 setTimeout(() => navigate('/my_test'), 1500);
@@ -171,6 +189,8 @@ export default function AddTest() {
                         setIsTime={setIsTime}
                         setTime={setTime}
                         handleAddTime={handleAddTime}
+                        savollarSoni={savollarSoni}
+                        setSavollarSoni={setSavollarSoni}
                     />
                 ) : (
                     <div className='json_section'>

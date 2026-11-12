@@ -127,7 +127,8 @@ async def admin_create_test(db: AsyncSession, test_data: AdminTestCreate, user_i
         test_key=test_key,
         ispublic=test_data.ispublic,
         istime=test_data.istime,
-        time=test_data.time * 60 if test_data.istime else 60 * 60 * 60 * 24 * 365
+        time=test_data.time * 60 if test_data.istime else 60 * 60 * 60 * 24 * 365,
+        question_count=test_data.question_count
     )
     
     db.add(db_test)
@@ -167,6 +168,8 @@ async def admin_update_test(db: AsyncSession, test_id: int, test_data: AdminTest
         update_data['istime'] = test_data.istime
     if test_data.time is not None:
         update_data['time'] = test_data.time * 60 if test_data.istime else 60 * 60 * 60 * 24 * 365
+    if test_data.question_count is not None:
+        update_data['question_count'] = test_data.question_count
     
     if update_data:
         await db.execute(

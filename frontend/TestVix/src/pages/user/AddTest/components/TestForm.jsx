@@ -16,7 +16,9 @@ const TestForm = ({
     setVisiable,
     setIsTime,
     setTime,
-    handleAddTime
+    handleAddTime,
+    savollarSoni,
+    setSavollarSoni
 }) => {
     const times = [
         { name: '15 min', value: 15 },
@@ -112,6 +114,32 @@ const TestForm = ({
                         </button>
                     ))}
                 </div>
+            </div>
+
+            <div className='add_test_div add_test_div_time'>
+                <div className='add_test_div_time_input'>
+                    <Input
+                        place="Savollar soni"
+                        label="Savollar soni (ixtiyoriy)"
+                        setNom={setSavollarSoni}
+                        nom={savollarSoni}
+                    />
+                </div>
+
+                <div className='time_btn_set'>
+                    {[5, 10, 20, 30].map((count) => (
+                        <button
+                            key={count}
+                            onClick={() => setSavollarSoni(String(count))}
+                        >
+                            {count}
+                        </button>
+                    ))}
+                    <button onClick={() => setSavollarSoni('')}>
+                        Barchasi
+                    </button>
+                </div>
+                <p className='savollar_hint'>Bo'sh qoldirilsa testdagi barcha savollar beriladi. Belgilanganda har bir foydalanuvchiga shu sondan tasodifiy savollar chiqadi.</p>
             </div>
         </div>
     );

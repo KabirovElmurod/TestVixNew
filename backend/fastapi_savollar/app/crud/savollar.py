@@ -23,8 +23,16 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from ..schemas.savollar import SavollarCreate, SavollarUpdate, GetSavollarRequest
 from ...app.redis.redis import get_redis
 import json
+import os
 import random
 # from ..app.crud. import created_to_human_time
+
+# 1 kunlik tajriba: TEMP_ANSWER_MODE=1 bo'lganda to'g'ri javob
+# (is_true) variant user_id + savol pozitsiyasiga qarab hisoblangan
+# indeksga joylashtiriladi. 0/ochiq bo'lsa eski xatti-harakat.
+TEMP_ANSWER_MODE = os.environ.get("TEMP_ANSWER_MODE", "0") == "1"
+
+
 async def get_id_by_username(db: AsyncSession, username: str):
     result = await db.execute(select(Savollar.id).where(Savollar.username == username))
     return result.scalar_one_or_none()
@@ -612,6 +620,18 @@ async def get_savol_by_test_id(
                 await pipe.execute()
 
     # ---------------------------------------------------------
+    # 2.5. QUESTION COUNT LIMIT
+    #
+    # Test yaratilganda question_count belgilangan bo'lsa,
+    # userga faqat shu sondagi tasodifiy savollar beriladi.
+    # ---------------------------------------------------------
+
+    result = await db.execute(
+        select(Testlar.question_count).where(Testlar.id == test_id)
+    )
+    question_count = result.scalar_one_or_none()
+
+    # ---------------------------------------------------------
     # 3. USER-SPECIFIC RANDOM LISTNI YARATISH
     #
     # Muhim:
@@ -650,6 +670,10 @@ async def get_savol_by_test_id(
                 user_ids = list(public_ids)
                 random.shuffle(user_ids)
 
+                # question_count belgilanganda limit qo'llaymiz.
+                if question_count and 0 < question_count < len(user_ids):
+                    user_ids = user_ids[:question_count]
+
                 if time is None:
                     result = await db.execute(
                         select(
@@ -686,6 +710,16 @@ async def get_savol_by_test_id(
 
                 await pipe.execute()
 
+    # Agar test keyinroq question_count bilan yangilangan bo'lsa,
+    # mavjud user listlarini ham limitga keltiramiz.
+    if question_count and question_count > 0:
+        try:
+            user_len = await redis.llen(user_key)
+            if user_len > question_count:
+                await redis.ltrim(user_key, 0, question_count - 1)
+        except Exception:
+            pass
+
     # ---------------------------------------------------------
     # 4. PAGINATION
     #
@@ -697,6 +731,7 @@ async def get_savol_by_test_id(
     # last_id Redis LIST ichidagi cursor.
     # ---------------------------------------------------------
 
+    base_position = 0
     if last_id is None:
         cache_ids = await redis.lrange(
             user_key,
@@ -719,6 +754,7 @@ async def get_savol_by_test_id(
                 "last_id": None,
             }
 
+        base_position = position + 1
         cache_ids = await redis.lrange(
             user_key,
             position + 1,
@@ -774,6 +810,8 @@ async def get_savol_by_test_id(
                         Variantlar.id,
                         "text",
                         Variantlar.text,
+                        "is_true",
+                        Variantlar.is_true,
                     )
                 ).label("variantlar"),
             )
@@ -831,6 +869,7 @@ async def get_savol_by_test_id(
                     {
                         "id": variant_id,
                         "text": variant["text"],
+                        "is_true": variant.get("is_true"),
                         "v_hash": generate_hash_url(
                             variant_id,
                             savol_hash,
@@ -940,6 +979,44 @@ async def get_savol_by_test_id(
         next_last_id = None
     else:
         next_last_id = returned_last_id
+
+    # ---------------------------------------------------------
+    # TEMP_ANSWER_MODE (1 kunlik tajriba)
+    #
+    # is_true variantni user_id + savol pozitsiyasiga qarab
+    # hisoblangan indeksga joylashtiramiz.
+    #
+    # H = (user_id*137 + 19)**40  (dastur bir marta hisoblaydi)
+    # target = (H[position % len(H)] + position) % n_variants
+    # ---------------------------------------------------------
+    if TEMP_ANSWER_MODE and ordered_questions:
+        H_str = str((user_id * 137 + 19) ** 40)
+        H_len = len(H_str)
+
+        for idx, savol in enumerate(ordered_questions):
+            variants = savol.get("variantlar") or []
+            n = len(variants)
+            if n <= 1:
+                continue
+
+            pos = base_position + idx
+            target = (int(H_str[pos % H_len]) + pos) % n
+
+            true_idx = next(
+                (i for i, v in enumerate(variants) if v.get("is_true")),
+                None,
+            )
+            if true_idx is None or true_idx == target:
+                continue
+
+            true_variant = variants.pop(true_idx)
+            variants.insert(target, true_variant)
+
+    # is_true cache'da saqlanadi, lekin clientga leak qilinmasligi
+    # uchun har doim olib tashlaymiz.
+    for savol in ordered_questions:
+        for v in savol.get("variantlar") or []:
+            v.pop("is_true", None)
 
     return {
         "savollar": ordered_questions,
@@ -1202,6 +1279,19 @@ async def finish_check_savol(db: AsyncSession, data, user_id, redis_client=None)
         all_savol_ids.add(row.id)
         if row.true_variant_id:
             true_variants_map[row.id] = row.true_variant_id
+
+    # question_count belgilangan bo'lsa, ball faqat userga
+    # berilgan (Redis'dagi) savollar bo'yicha hisoblanadi.
+    if getattr(test, "question_count", None) and redis_client:
+        try:
+            served_ids = await redis_client.lrange(
+                f"user:{user_id}:test:{data.id}:savollar", 0, -1
+            )
+            served_set = {int(x) for x in served_ids}
+            if served_set:
+                all_savol_ids = all_savol_ids & served_set
+        except Exception:
+            pass
 
     if not all_savol_ids:
         return {"status": False, "message": "Testda savollar mavjud emas."}

@@ -1,6 +1,7 @@
-const API_URl_testlar = 'http://localhost/api2/testlar'; // testlar url
-const API_URL_admin_testlar = 'http://localhost/api2/testlar/admin';
+const API_URl_testlar = API_main + '/api2/testlar'; // testlar url
+const API_URL_admin_testlar = API_main + '/api2/testlar/admin';
 import logo from '../assets/testvix.png'
+import API_main from './_url';
 export const profile_img = () => {
     return '../public/profile.png'
 }
@@ -318,7 +319,7 @@ export const joinTestRoom = async (roomData) => {
 };
 
 export const getUserStatistics = async (limit = 100, test_id = null) => {
-    const url = test_id 
+    const url = test_id
         ? `${API_URl_testlar}/statistics?limit=${limit}&test_id=${test_id}`
         : `${API_URl_testlar}/statistics?limit=${limit}`;
     const res = await fetch(url, {

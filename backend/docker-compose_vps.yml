@@ -20,8 +20,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx_vps.conf:/etc/nginx/nginx_vps.conf:ro
-      - /opt/testvix/ssl:/etc/nginx/ssl:ro
+      - ./nginx/nginx_vps.conf:/etc/nginx/nginx.conf:ro
+      - /mnt/myapp/ssl:/etc/nginx/ssl:ro
     depends_on:
       - frontend
       - account

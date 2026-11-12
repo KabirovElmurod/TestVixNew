@@ -39,7 +39,8 @@ async def create_testlar(db: AsyncSession, testlar: TestlarCreate, user_id: int)
         test_key=test_key,
         ispublic=testlar.ispublic,
         istime=testlar.istime,
-        time=testlar.time * 60 if testlar.istime else 60 * 60 * 60 * 24 * 365
+        time=testlar.time * 60 if testlar.istime else 60 * 60 * 60 * 24 * 365,
+        question_count=testlar.question_count
     )
     db.add(db_testlar)
     await db.commit()
@@ -86,7 +87,8 @@ async def create_test_with_json(db: AsyncSession, testlar: TestlarCreate, user_i
         test_key=test_key,
         ispublic=testlar.ispublic,
         istime=testlar.istime,
-        time=testlar.time * 60 if testlar.istime else 60 * 60 * 60 * 24 * 365
+        time=testlar.time * 60 if testlar.istime else 60 * 60 * 60 * 24 * 365,
+        question_count=testlar.question_count if testlar.question_count is not None else testlar.savollar_soni
     )
 
     db.add(db_testlar)
@@ -163,8 +165,17 @@ async def get_test_by_test_id(db: AsyncSession, test_id: str | int):
     if not test:
         return None
 
+    savollar_count_result = await db.execute(
+        select(func.count(Savollar.id)).where(Savollar.test_id == test.id)
+    )
+    savollar_count = savollar_count_result.scalar() or 0
+    if test.question_count and 0 < test.question_count < savollar_count:
+        savollar_count = test.question_count
+
     # Return as dict with hash_url
     return {
+        'savollar_soni': savollar_count,
+        'question_count': test.question_count,
         'id': test.id,
         'user_id': test.user_id,
         'nom': test.nom,
@@ -176,6 +187,7 @@ async def get_test_by_test_id(db: AsyncSession, test_id: str | int):
         'ispublic': test.ispublic,
         'istime': test.istime,
         'time': test.time,
+        'question_count': test.question_count,
         'created': test.created,
         'hash_url': generate_hash_url(test.id, test.test_key)
     }
@@ -235,6 +247,7 @@ async def get_testlar_by_user_id(db: AsyncSession, user_id: int, skip: int = 0, 
             'ispublic': test.ispublic,
             'istime': test.istime,
             'time': test.time,
+            'question_count': test.question_count,
             'created': created_to_human_time(test.created),
             'hash_url': generate_hash_url(test.id, test.test_key),
             'savollar_soni': savollar_soni,
@@ -861,7 +874,8 @@ async def update_test(db: AsyncSession, test: TestlarUpdate):
             tavsif=update_data.get('tavsif'),
             ispublic=update_data.get('ispublic'),
             istime=update_data.get('istime'),
-            time=update_data.get('time'))
+            time=update_data.get('time'),
+            question_count=update_data.get('question_count'))
     )
     if result.rowcount == 0:
         return False

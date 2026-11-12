@@ -40,6 +40,7 @@ class AdminTestCreate(BaseModel):
     ispublic: bool = True
     istime: bool = False
     time: Optional[int] = None
+    question_count: Optional[int] = None
 
 class AdminTestUpdate(BaseModel):
     nom: Optional[str] = None
@@ -48,6 +49,7 @@ class AdminTestUpdate(BaseModel):
     ispublic: Optional[bool] = None
     istime: Optional[bool] = None
     time: Optional[int] = None
+    question_count: Optional[int] = None
 
 # Hashtag schemas
 class HashtagCreate(BaseModel):

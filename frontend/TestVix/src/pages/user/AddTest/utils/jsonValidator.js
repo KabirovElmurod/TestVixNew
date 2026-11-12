@@ -54,6 +54,9 @@ export const formatJsonData = (jsonData) => {
         ispublic: typeof jsonData.ispublic === 'boolean' ? jsonData.ispublic : true,
         istime: typeof jsonData.istime === 'boolean' ? jsonData.istime : true,
         time: typeof jsonData.time === 'number' ? jsonData.time : 15,
+        question_count: typeof jsonData.question_count === 'number' && jsonData.question_count > 0
+            ? jsonData.question_count
+            : (typeof jsonData.savollar_soni === 'number' && jsonData.savollar_soni > 0 ? jsonData.savollar_soni : null),
         savollar: jsonData.savollar || []
     };
 };

@@ -1,5 +1,7 @@
-const API_URl_savollar = 'http://localhost/api3/savollar';
-const API_URL_admin_savollar = 'http://localhost/api3/savollar/admin';
+import API_main from "./_url";
+
+const API_URl_savollar = API_main + '/api3/savollar';
+const API_URL_admin_savollar = API_main + '/api3/savollar/admin';
 
 
 export const getSavol = async (data) => {

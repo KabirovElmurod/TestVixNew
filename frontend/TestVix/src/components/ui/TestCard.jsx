@@ -39,7 +39,7 @@ export default function TestCard({ test, handleCopyId }) {
                 <div className="card-info">
 
                     <span><i className="bi bi-clock"></i> {test.istime ? human_time(test.time) : <i className="bi bi-infinity"></i>}</span>
-                    <span><i className="bi bi-question-circle"></i> {test.savollar_soni} savol</span>
+                    <span><i className="bi bi-question-circle"></i> {test.savollar_soni && test.question_count ? Math.min(test.savollar_soni, test.question_count) : (test.question_count || test.savollar_soni)} savol</span>
                     <span><i className="bi bi-star-fill" style={{ color: '#fbbf24' }}></i> 4.5</span>
                     <span><i className="bi bi-calendar3"></i> {test.created}</span>
                 </div>

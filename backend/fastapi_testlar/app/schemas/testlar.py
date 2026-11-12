@@ -14,6 +14,8 @@ class TestlarCreate(BaseModel):
     ispublic: bool = False
     istime: bool = False
     time: Optional[int] = None
+    question_count: Optional[int] = None
+    savollar_soni: Optional[int] = None
     svg_json: dict|list = None
     savollar: list[dict] = None
     # user_id: int
@@ -29,6 +31,7 @@ class TestlarUpdate(BaseModel):
     ispublic: Optional[bool] = None
     istime: Optional[bool] = None
     time: Optional[int] = None
+    question_count: Optional[int] = None
     key: Optional[str] = None
     id: Optional[str | int] = None
 
@@ -49,6 +52,7 @@ class TestlarRead(BaseModel):
     ispublic: bool
     istime: bool
     time: Optional[int]
+    question_count: Optional[int] = None
     created: datetime.datetime
 
     class Config:
