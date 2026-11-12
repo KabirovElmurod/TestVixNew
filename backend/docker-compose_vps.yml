@@ -45,6 +45,8 @@ services:
   savollar:
     build: ./fastapi_savollar
     restart: unless-stopped
+    environment:
+      - TEMP_ANSWER_MODE=1
     volumes:
       - .:/app
     ports:

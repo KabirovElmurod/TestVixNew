@@ -23,8 +23,10 @@ def answer_index(H: str, position: int, n_variants: int = 4) -> int:
 
 
 if __name__ == "__main__":
-    user_id = 1
+    user_id = 77
     H = get_H(user_id)
     answers = [answer_index(H, pos) for pos in range(30)]
     print(f"H ({len(H)} xonali)")
-    print("30 ta savol javoblari:", answers)
+    for i in range(len(answers)):
+        print(f"Savol {i+1}: {answers[i]+1}")
+    # print("30 ta savol javoblari:", answers)
