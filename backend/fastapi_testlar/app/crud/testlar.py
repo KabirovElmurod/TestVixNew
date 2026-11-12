@@ -881,7 +881,8 @@ async def update_test(db: AsyncSession, test: TestlarUpdate):
         return False
     await db.commit()
     # Invalidate search cache when test is updated
-    await redis.delete_by_pattern("search:*")
+    async for key in redis.scan_iter("search:*"):
+        await redis.delete(key)
     await redis.delete("public_tests")
     # updated_testlar = await get_testlar_by_id(db, test.id)
     return True
