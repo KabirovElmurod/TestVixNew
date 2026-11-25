@@ -113,8 +113,10 @@ export default function ResultsTab({ results, onLoadMore }) {
                 <div key={result.id} className="result-card">
                   <div className="result-main">
                     <div className="result-info">
-                      <div className="result-title">Test #{result.test_id}</div>
-                      <div className="result-date">{formatDate(result.created)}</div>
+                      <div className="result-title">{result.test_name || `Test #${result.test_id}`}</div>
+                      <div className="result-date">
+                        {result.test_fan ? `${result.test_fan} · ` : ''}{formatDate(result.created)}
+                      </div>
                     </div>
                     <div className="result-status">
                       {result.isfinish ? (

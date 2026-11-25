@@ -1,0 +1,27 @@
+{
+  "results": {
+    "register": {
+      "time": 13.9,
+      "success": true
+    },
+    "V1": {
+      "time": 93.2,
+      "success": false,
+      "errors": "Page.wait_for_selector: Timeout 90000ms exceeded.\nCall log:\n  - waiting for locator(\"text=Test qo'shish\") to be visible\n"
+    },
+    "V2": {
+      "time": 30.4,
+      "success": false,
+      "errors": "Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\".test-card\").filter(has_text=\"Usability test A\").first.locator(\"button[title=\\\"Savol qo'shish\\\"]\")\n"
+    },
+    "V3": {
+      "time": 30.0,
+      "success": false,
+      "errors": "Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\".test-card\").filter(has_text=\"Usability test A\").first.locator(\"button[title=\\\"Statistika\\\"]\")\n"
+    }
+  },
+  "console_errors": [
+    "Failed to load resource: net::ERR_CONNECTION_RESET"
+  ],
+  "page_errors": []
+}

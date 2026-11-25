@@ -1,5 +1,7 @@
 import os
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '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')
+from dotenv import load_dotenv
+load_dotenv()
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY') or os.getenv('GROQ_API_KEY')
 
 from openai import OpenAI
 import json

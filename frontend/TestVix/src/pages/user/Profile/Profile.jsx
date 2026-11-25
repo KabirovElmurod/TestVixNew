@@ -101,7 +101,7 @@ export default function Profile() {
         const activity = resultsResponse.results.slice(0, 4).map(result => ({
           id: result.id,
           type: 'test',
-          title: `Test #${result.test_id}`,
+          title: result.test_name || `Test #${result.test_id}`,
           date: formatDate(result.created),
           score: result.score
         }))

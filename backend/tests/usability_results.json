@@ -1,0 +1,38 @@
+{
+  "results": {
+    "register": {
+      "time": 63.6,
+      "success": true
+    },
+    "V1": {
+      "time": 33.1,
+      "success": false,
+      "errors": "Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\"button\").filter(has_text=\"Test qo'shish\").first\n"
+    },
+    "V2": {
+      "time": 0.0,
+      "success": false,
+      "errors": "Locator.click: Unexpected token \"\" while parsing css selector \"button[title='Savol qo'shish']\". Did you mean to CSS.escape it?\nCall log:\n  - waiting for .test-card >> internal:has-text=\"Usability test A\"i >> nth=0 >> button[title='Savol qo'shish']\n"
+    },
+    "V3": {
+      "time": 30.0,
+      "success": false,
+      "errors": "Page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://localhost/my_test\", waiting until \"networkidle\"\n"
+    }
+  },
+  "console_errors": [
+    "WebSocket connection to 'ws://localhost/?token=LzdLBVMdxab3' failed: Error during WebSocket handshake: Unexpected response code: 200",
+    "WebSocket connection to 'ws://localhost:5173/?token=LzdLBVMdxab3' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[vite] failed to connect to websocket.\nyour current setup:\n  (browser) localhost/ <--[HTTP]--> localhost:5173/ (server)\n  (browser) localhost:/ <--[WebSocket (failing)]--> localhost:5173/ (server)\nCheck out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr .",
+    "WebSocket connection to 'ws://localhost/?token=LzdLBVMdxab3' failed: Error during WebSocket handshake: Unexpected response code: 200",
+    "WebSocket connection to 'ws://localhost:5173/?token=LzdLBVMdxab3' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[vite] failed to connect to websocket.\nyour current setup:\n  (browser) localhost/ <--[HTTP]--> localhost:5173/ (server)\n  (browser) localhost:/ <--[WebSocket (failing)]--> localhost:5173/ (server)\nCheck out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr .",
+    "WebSocket connection to 'ws://localhost/?token=LzdLBVMdxab3' failed: Error during WebSocket handshake: Unexpected response code: 200",
+    "WebSocket connection to 'ws://localhost:5173/?token=LzdLBVMdxab3' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[vite] failed to connect to websocket.\nyour current setup:\n  (browser) localhost/ <--[HTTP]--> localhost:5173/ (server)\n  (browser) localhost:/ <--[WebSocket (failing)]--> localhost:5173/ (server)\nCheck out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr .",
+    "WebSocket connection to 'ws://localhost/?token=LzdLBVMdxab3' failed: Error during WebSocket handshake: Unexpected response code: 200",
+    "WebSocket connection to 'ws://localhost:5173/?token=LzdLBVMdxab3' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "[vite] failed to connect to websocket.\nyour current setup:\n  (browser) localhost/ <--[HTTP]--> localhost:5173/ (server)\n  (browser) localhost:/ <--[WebSocket (failing)]--> localhost:5173/ (server)\nCheck out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr ."
+  ],
+  "page_errors": []
+}

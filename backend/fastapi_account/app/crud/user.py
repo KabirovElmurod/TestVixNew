@@ -175,7 +175,10 @@ async def update_user_in_db(db: AsyncSession, user_data):
         values['is_active'] = user_data.is_active
     if user_data.is_admin is not None:
         values['is_admin'] = user_data.is_admin
-    
+
+    if not values:
+        return {"message": "O'zgartiriladigan maydon topilmadi", "status": False}
+
     await db.execute(
         update(User)
         .where(User.id == user_data.id)
@@ -406,26 +409,29 @@ async def get_user_results(db: AsyncSession, user_id: int, page: int = 0, limit:
     )
     total = total_result.scalar() or 0
     
-    # Get results with pagination
+    # Get results with pagination and test info
     results = await db.execute(
-        select(Natijalar)
+        select(Natijalar, Testlar.nom, Testlar.fan)
+        .outerjoin(Testlar, Natijalar.test_id == Testlar.id)
         .where(Natijalar.user_id == user_id)
         .order_by(Natijalar.created.desc())
         .limit(limit)
         .offset(offset)
     )
-    results_list = results.scalars().all()
-    
+    results_list = results.all()
+
     # Format results
     formatted_results = []
-    for result in results_list:
+    for result, test_nom, test_fan in results_list:
         score = 0
         if result.sum_son > 0:
             score = round((result.true_son / result.sum_son) * 100, 1)
-        
+
         formatted_results.append({
             "id": result.id,
             "test_id": result.test_id,
+            "test_name": test_nom,
+            "test_fan": test_fan,
             "sum_son": result.sum_son,
             "true_son": result.true_son,
             "false_son": result.false_son,
